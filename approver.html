@@ -1,0 +1,2166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Center SDO Dashboard</title>
+  <link rel="icon" type="jpg" href="favicon.jpg">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="darkmode.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      background-color: #f0f8f5;
+      margin: 0;
+    }
+  
+    .dashboard {
+      display: flex;
+      min-height: 100vh;
+    }
+  
+    .sidebar {
+      width: 130px;
+      background-color: #155724;
+      color: white;
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 0px;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+  
+    .sidebar button {
+      background: none;
+      border: none;
+      color: #ffffff;
+      text-align: left;
+      padding: 0px 5px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+  
+    .sidebar button.active {
+      background-color: #546959;
+      font-weight: bold;
+      width: 135px;
+    }
+  
+    .my-tab {
+      display: none;
+    }
+  
+    .my-tab.active {
+      display: block;
+    }
+  
+    .page-footer {
+    position: fixed;
+    left: 130px;
+    right: 0;
+    bottom: 0;
+    display: block;
+    box-sizing: border-box;
+    background: #f0f8f5;
+    border-top: 1px solid rgba(21, 87, 36, 0.25);
+    padding: 10px 20px;
+    font-size: 0.75rem;
+    z-index: 1040;
+    }
+
+    body.dark-mode .page-footer {
+      background: #0a1a0f  !important;
+      border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .main-content {
+    flex: 1;
+    padding: 20px;
+    padding-bottom: 95px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    }
+
+    
+  </style>
+</head>
+<body>
+    
+  <!-- Export Date Range Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-success">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Export to Excel</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-bold text-success">From Date</label>
+          <input type="date" id="export-date-from" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-success">To Date</label>
+          <input type="date" id="export-date-to" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="confirmExport()">
+          <i class="bi bi-file-earmark-excel me-1"></i> Export
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-success">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Confirm Logout</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to logout?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" onclick="confirmLogout()">Yes, Logout</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="sidebar d-flex flex-column" style="padding: 1rem 0;">
+    <div class="d-flex flex-column align-items-center">
+      <button class="nav-btn active d-flex flex-column align-items-center mb-0" onclick="showTab('pending-req', this)">
+        <i class="bi bi-hourglass-split" style="font-size: 30px;"></i>
+        <small>Pending Requests</small>
+      </button>
+      <button class="nav-btn d-flex flex-column align-items-center mb-0" onclick="showTab('pending-liq', this)">
+        <i class="bi bi-wallet2" style="font-size: 30px;"></i>
+        <small>Pending Liquidations</small>
+      </button>
+      <button class="nav-btn d-flex flex-column align-items-center mb-0" onclick="showTab('approved-req', this)">
+        <i class="bi bi-check-circle" style="font-size: 30px;"></i>
+        <small>Verified Requests</small>
+      </button>
+      <button class="nav-btn d-flex flex-column align-items-center mb-0" onclick="showTab('approved-liq', this)">
+        <i class="bi bi-patch-check" style="font-size: 30px;"></i>
+        <small>Approved Liquidations</small>
+      </button>
+      <button class="nav-btn d-flex flex-column align-items-center mb-0" onclick="showTab('released-req', this)">
+        <i class="bi bi-box-arrow-up" style="font-size: 30px;"></i>
+        <small>Released Requests</small>
+      </button>
+      <button class="nav-btn d-flex flex-column align-items-center mb-0" onclick="showTab('unliquidated-req', this)">
+        <i class="bi bi-exclamation-circle" style="font-size: 30px;"></i>
+        <small>Unliquidated Requests</small>
+      </button>
+      <button class="nav-btn d-flex flex-column align-items-center mb-0" onclick="showTab('add-accounts', this)">
+        <i class="bi bi-person-plus" style="font-size: 30px;"></i>
+        <small>Manage Accounts</small>
+      </button>
+    </div>
+    
+    <div class="mt-auto d-flex flex-column align-items-center">
+      <button class="nav-btn dark-mode-toggle d-flex flex-column align-items-center mb-2" onclick="toggleDarkMode()">
+        <i class="bi bi-moon-stars-fill" style="font-size: 30px;" id="dark-mode-icon"></i>
+        <small id="dark-mode-label">Dark Mode</small>
+      </button>
+      <button class="nav-btn d-flex flex-column align-items-center mb-3" onclick="logout()">
+        <i class="bi bi-box-arrow-right" style="font-size: 30px;"></i>
+        <small>Logout</small>
+      </button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="page-header d-flex align-items-center justify-content-between mb-3">
+      <div class="header-logo">
+        <img src="logo.png"       alt="Logo" class="logo-default" style="height: 40px; width: auto;">
+        <img src="logo-light.png" alt="Logo" class="logo-dark"    style="height: 40px; width: auto;">
+      </div>
+      <div class="header-text text-end">
+        <div id="page-title" class="fw-bold fs-6 text-success">Pending Requests</div>
+        <div id="page-date" class="text-muted fs-9"></div>
+      </div>
+    </div>
+    <hr class="header-underline">
+
+    <div id="pending-req" class="my-tab active">
+      <h6 class="fw-bold text-success mb-3">Pending Requests</h6>
+
+      <div class="row mb-3 align-items-center g-2">
+        <div class="col-md-4">
+          <select id="pending-category-filter" class="form-select">
+            <option value="ALL">All Categories</option>
+            <optgroup label="School Categories">
+              <option value="Board Exam Fees &amp; Expenses">Board Exam Fees &amp; Expenses</option>
+              <option value="Graduation Expense">Graduation Expense</option>
+              <option value="OJT Expenses">OJT Expenses</option>
+              <option value="School Projects">School Projects</option>
+              <option value="Transportation">Transportation</option>
+              <option value="School Uniforms">School Uniforms</option>
+              <option value="School Research/Thesis">School Research/Thesis</option>
+              <option value="Books and Modules">Books and Modules</option>
+              <option value="Seminar/Educational Field Trips">Seminar/Educational Field Trips</option>
+              <option value="Internet/Phone/Post">Internet/Phone/Post</option>
+            </optgroup>
+            <optgroup label="Other Categories">
+              <option value="Social Follow-Up/Mission">Social Follow-Up/Mission</option>
+              <option value="Center Activities">Center Activities</option>
+              <option value="Festivities">Festivities</option>
+              <option value="Seminars/Modular Sessions">Seminars/Modular Sessions</option>
+              <option value="Repairs and Maintenance">Repairs and Maintenance</option>
+              <option value="House Rental">House Rental</option>
+              <option value="Utilities: Water/Electricity">Utilities: Water/Electricity</option>
+              <option value="Food Budget">Food Budget</option>
+              <option value="Drinkable Water">Drinkable Water</option>
+              <option value="Hygiene/Cleaning Materials">Hygiene/Cleaning Materials</option>
+              <option value="IT/House Equipment">IT/House Equipment</option>
+              <option value="Gas and Firewood">Gas and Firewood</option>
+              <option value="Office Internet/Phone">Office Internet/Phone</option>
+              <option value="Health Expenses">Health Expenses</option>
+            </optgroup>
+          </select>
+        </div>
+      
+        <div class="col-md-8">
+          <input type="text" id="pending-search" class="form-control"
+                 placeholder="Search name, category, amount, or date...">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-success">
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="pending-req-body"></tbody>
+        </table>
+      </div>
+
+      <div id="pending-req-empty" class="text-center text-muted py-4 d-none">
+        No pending requests found.
+      </div>
+    </div>
+
+    <div class="modal fade" id="requestDetailsModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-success">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="detailsModalTitle">Transaction Details</h5>
+            <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <div id="requestDetailsBody"></div>
+
+            <hr>
+
+            <label id="remarks-label" class="form-label fw-bold text-success">Remarks</label>
+            <textarea id="remarks-input" class="form-control" rows="3" placeholder="Type remarks here..."></textarea>
+
+            <div class="d-flex justify-content-end gap-2 mt-3">
+              <button class="btn btn-outline-danger" id="btn-reject">Reject</button>
+              <button class="btn btn-success text-white" id="btn-approve">Approve</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="pending-liq" class="my-tab">
+      <h6 class="fw-bold text-success mb-3">Pending Liquidations</h6>
+    
+      <div class="row mb-3 align-items-center g-2">
+        <div class="col-md-4">
+          <select id="pending-liq-category-filter" class="form-select">
+            <option value="ALL">All Categories</option>
+            <optgroup label="School Categories">
+              <option value="Board Exam Fees &amp; Expenses">Board Exam Fees &amp; Expenses</option>
+              <option value="Graduation Expense">Graduation Expense</option>
+              <option value="OJT Expenses">OJT Expenses</option>
+              <option value="School Projects">School Projects</option>
+              <option value="Transportation">Transportation</option>
+              <option value="School Uniforms">School Uniforms</option>
+              <option value="School Research/Thesis">School Research/Thesis</option>
+              <option value="Books and Modules">Books and Modules</option>
+              <option value="Seminar/Educational Field Trips">Seminar/Educational Field Trips</option>
+              <option value="Internet/Phone/Post">Internet/Phone/Post</option>
+            </optgroup>
+            <optgroup label="Other Categories">
+              <option value="Social Follow-Up/Mission">Social Follow-Up/Mission</option>
+              <option value="Center Activities">Center Activities</option>
+              <option value="Festivities">Festivities</option>
+              <option value="Seminars/Modular Sessions">Seminars/Modular Sessions</option>
+              <option value="Repairs and Maintenance">Repairs and Maintenance</option>
+              <option value="House Rental">House Rental</option>
+              <option value="Utilities: Water/Electricity">Utilities: Water/Electricity</option>
+              <option value="Food Budget">Food Budget</option>
+              <option value="Drinkable Water">Drinkable Water</option>
+              <option value="Hygiene/Cleaning Materials">Hygiene/Cleaning Materials</option>
+              <option value="IT/House Equipment">IT/House Equipment</option>
+              <option value="Gas and Firewood">Gas and Firewood</option>
+              <option value="Office Internet/Phone">Office Internet/Phone</option>
+              <option value="Health Expenses">Health Expenses</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="col-md-8">
+          <input type="text" id="pending-liq-search" class="form-control"
+                 placeholder="Search name, category, amount, or date...">
+        </div>
+      </div>
+    
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-success">
+            <tr>
+              <th>Name</th><th>Category</th><th>Amount</th><th>Date</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="pending-liq-body"></tbody>
+        </table>
+      </div>
+      <div id="pending-liq-empty" class="text-center text-muted py-4 d-none">
+        No pending liquidations found.
+      </div>
+    </div>
+
+    <div id="approved-req" class="my-tab">
+      <h6 class="fw-bold text-success mb-3">Verified Requests</h6>
+    
+      <div class="row mb-3 align-items-center">
+        <div class="col-md-3">
+          <select id="verified-status-filter" class="form-select">
+            <option value="ALL">All</option>
+            <option value="APPROVED REQUEST">Approved</option>
+            <option value="REJECTED REQUEST">Rejected</option>
+          </select>
+        </div>
+        <div class="col-md-9">
+          <input type="text" id="verified-search" class="form-control"
+                 placeholder="Search name, category, amount, or date...">
+        </div>
+      </div>
+    
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-success">
+            <tr>
+              <th>Name</th><th>Category</th><th>Amount</th><th>Date</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="approved-req-body"></tbody>
+        </table>
+      </div>
+      <div id="approved-req-empty" class="text-center text-muted py-4 d-none">
+        No verified/rejected requests found.
+      </div>
+    </div>
+
+    <div id="approved-liq" class="my-tab">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-success mb-0">Approved Liquidations</h6>
+        <button class="btn btn-success btn-sm" onclick="exportToExcel()">
+          <i class="bi bi-file-earmark-excel me-1"></i> Export to Excel
+        </button>
+      </div>
+    
+      <div class="row mb-3 align-items-center g-2">
+        <div class="col-md-4">
+          <select id="approved-liq-category-filter" class="form-select">
+            <option value="ALL">All Categories</option>
+            <optgroup label="School Categories">
+              <option value="Board Exam Fees &amp; Expenses">Board Exam Fees &amp; Expenses</option>
+              <option value="Graduation Expense">Graduation Expense</option>
+              <option value="OJT Expenses">OJT Expenses</option>
+              <option value="School Projects">School Projects</option>
+              <option value="Transportation">Transportation</option>
+              <option value="School Uniforms">School Uniforms</option>
+              <option value="School Research/Thesis">School Research/Thesis</option>
+              <option value="Books and Modules">Books and Modules</option>
+              <option value="Seminar/Educational Field Trips">Seminar/Educational Field Trips</option>
+              <option value="Internet/Phone/Post">Internet/Phone/Post</option>
+            </optgroup>
+            <optgroup label="Other Categories">
+              <option value="Social Follow-Up/Mission">Social Follow-Up/Mission</option>
+              <option value="Center Activities">Center Activities</option>
+              <option value="Festivities">Festivities</option>
+              <option value="Seminars/Modular Sessions">Seminars/Modular Sessions</option>
+              <option value="Repairs and Maintenance">Repairs and Maintenance</option>
+              <option value="House Rental">House Rental</option>
+              <option value="Utilities: Water/Electricity">Utilities: Water/Electricity</option>
+              <option value="Food Budget">Food Budget</option>
+              <option value="Drinkable Water">Drinkable Water</option>
+              <option value="Hygiene/Cleaning Materials">Hygiene/Cleaning Materials</option>
+              <option value="IT/House Equipment">IT/House Equipment</option>
+              <option value="Gas and Firewood">Gas and Firewood</option>
+              <option value="Office Internet/Phone">Office Internet/Phone</option>
+              <option value="Health Expenses">Health Expenses</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="col-md-8">
+          <input type="text" id="approved-liq-search" class="form-control"
+                 placeholder="Search name, category, amount, or date...">
+        </div>
+      </div>
+    
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-success">
+            <tr>
+              <th>Name</th><th>Category</th><th>Amount</th><th>Date</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="approved-liq-body"></tbody>
+        </table>
+      </div>
+      <div id="approved-liq-empty" class="text-center text-muted py-4 d-none">
+        No approved liquidations found.
+      </div>
+    </div>
+
+    <div id="released-req" class="my-tab">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-success mb-0">Released Requests</h6>
+        <button class="btn btn-success btn-sm" onclick="exportToExcel()">
+          <i class="bi bi-file-earmark-excel me-1"></i> Export to Excel
+        </button>
+      </div>
+    
+      <div class="row mb-3 align-items-center g-2">
+        <div class="col-md-4">
+          <select id="released-req-category-filter" class="form-select">
+            <option value="ALL">All Categories</option>
+            <optgroup label="School Categories">
+              <option value="Board Exam Fees &amp; Expenses">Board Exam Fees &amp; Expenses</option>
+              <option value="Graduation Expense">Graduation Expense</option>
+              <option value="OJT Expenses">OJT Expenses</option>
+              <option value="School Projects">School Projects</option>
+              <option value="Transportation">Transportation</option>
+              <option value="School Uniforms">School Uniforms</option>
+              <option value="School Research/Thesis">School Research/Thesis</option>
+              <option value="Books and Modules">Books and Modules</option>
+              <option value="Seminar/Educational Field Trips">Seminar/Educational Field Trips</option>
+              <option value="Internet/Phone/Post">Internet/Phone/Post</option>
+            </optgroup>
+            <optgroup label="Other Categories">
+              <option value="Social Follow-Up/Mission">Social Follow-Up/Mission</option>
+              <option value="Center Activities">Center Activities</option>
+              <option value="Festivities">Festivities</option>
+              <option value="Seminars/Modular Sessions">Seminars/Modular Sessions</option>
+              <option value="Repairs and Maintenance">Repairs and Maintenance</option>
+              <option value="House Rental">House Rental</option>
+              <option value="Utilities: Water/Electricity">Utilities: Water/Electricity</option>
+              <option value="Food Budget">Food Budget</option>
+              <option value="Drinkable Water">Drinkable Water</option>
+              <option value="Hygiene/Cleaning Materials">Hygiene/Cleaning Materials</option>
+              <option value="IT/House Equipment">IT/House Equipment</option>
+              <option value="Gas and Firewood">Gas and Firewood</option>
+              <option value="Office Internet/Phone">Office Internet/Phone</option>
+              <option value="Health Expenses">Health Expenses</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="col-md-8">
+          <input type="text" id="released-req-search" class="form-control"
+                 placeholder="Search name, category, amount, or date...">
+        </div>
+      </div>
+    
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-success">
+            <tr>
+              <th>Name</th><th>Category</th><th>Amount</th><th>Date</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="released-req-body"></tbody>
+        </table>
+      </div>
+      <div id="released-req-empty" class="text-center text-muted py-4 d-none">
+        No released requests found.
+      </div>
+    </div>
+
+    <div id="unliquidated-req" class="my-tab">
+      <h6 class="fw-bold text-success mb-3">Unliquidated Requests</h6>
+    
+      <div class="row mb-3 align-items-center g-2">
+        <div class="col-md-4">
+          <select id="unliq-req-category-filter" class="form-select">
+            <option value="ALL">All Categories</option>
+            <optgroup label="School Categories">
+              <option value="Board Exam Fees &amp; Expenses">Board Exam Fees &amp; Expenses</option>
+              <option value="Graduation Expense">Graduation Expense</option>
+              <option value="OJT Expenses">OJT Expenses</option>
+              <option value="School Projects">School Projects</option>
+              <option value="Transportation">Transportation</option>
+              <option value="School Uniforms">School Uniforms</option>
+              <option value="School Research/Thesis">School Research/Thesis</option>
+              <option value="Books and Modules">Books and Modules</option>
+              <option value="Seminar/Educational Field Trips">Seminar/Educational Field Trips</option>
+              <option value="Internet/Phone/Post">Internet/Phone/Post</option>
+            </optgroup>
+            <optgroup label="Other Categories">
+              <option value="Social Follow-Up/Mission">Social Follow-Up/Mission</option>
+              <option value="Center Activities">Center Activities</option>
+              <option value="Festivities">Festivities</option>
+              <option value="Seminars/Modular Sessions">Seminars/Modular Sessions</option>
+              <option value="Repairs and Maintenance">Repairs and Maintenance</option>
+              <option value="House Rental">House Rental</option>
+              <option value="Utilities: Water/Electricity">Utilities: Water/Electricity</option>
+              <option value="Food Budget">Food Budget</option>
+              <option value="Drinkable Water">Drinkable Water</option>
+              <option value="Hygiene/Cleaning Materials">Hygiene/Cleaning Materials</option>
+              <option value="IT/House Equipment">IT/House Equipment</option>
+              <option value="Gas and Firewood">Gas and Firewood</option>
+              <option value="Office Internet/Phone">Office Internet/Phone</option>
+              <option value="Health Expenses">Health Expenses</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="col-md-8">
+          <input type="text" id="unliq-req-search" class="form-control"
+                 placeholder="Search name, category, amount, or date...">
+        </div>
+      </div>
+    
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-success">
+            <tr>
+              <th>Name</th><th>Category</th><th>Amount</th><th>Date</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="unliq-req-body"></tbody>
+        </table>
+      </div>
+      <div id="unliq-req-empty" class="text-center text-muted py-4 d-none">
+        No unliquidated requests found.
+      </div>
+    </div>
+
+    
+    <div id="add-accounts" class="my-tab">
+      <h6 class="fw-bold text-success mb-3">Manage Accounts</h6>
+
+      <!-- ADD ACCOUNT FORM -->
+      <div class="card border-success mb-4">
+        <div class="card-header bg-success text-white fw-bold">Add New Account</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="acc-name" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">User ID</label>
+              <input type="text" id="acc-userid" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Password</label>
+              <input type="password" id="acc-password" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">University</label>
+              <input type="text" id="acc-university" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Role</label>
+              <select id="acc-role" class="form-select" required>
+                <option value="">Select role</option>
+                <option value="SCHOLAR">Scholar/Staff</option>
+                <option value="Center SDO">Center SDO</option>
+                <option value="House Parent">House Parent</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-4 text-end">
+            <button class="btn btn-success" onclick="createAccount()">
+              <i class="bi bi-person-plus me-1"></i> Create Account
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALL ACCOUNTS LIST -->
+      <div class="card border-success">
+        <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
+          <span>All Accounts</span>
+          <input type="text" id="acc-search" class="form-control form-control-sm w-50"
+                 placeholder="Search name, ID, role..." oninput="renderAccountRows()">
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0">
+              <thead class="table-success">
+                <tr>
+                  <th>Name</th>
+                  <th>User ID</th>
+                  <th>Role</th>
+                  <th>University</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="accounts-list-body"></tbody>
+            </table>
+          </div>
+          <div id="accounts-list-empty" class="text-center text-muted py-4 d-none">
+            No accounts found.
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Account Modal -->
+<div class="modal fade" id="editAccountModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-success">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Edit Account</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-acc-userid-original">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="edit-acc-name" class="form-control">
+          </div>
+          <div class="col-12">
+            <label class="form-label">New Password <small class="text-muted">(leave blank to keep current)</small></label>
+            <input type="password" id="edit-acc-password" class="form-control" placeholder="Enter new password">
+          </div>
+          <div class="col-12">
+            <label class="form-label">University</label>
+            <input type="text" id="edit-acc-university" class="form-control">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Role</label>
+            <select id="edit-acc-role" class="form-select">
+              <option value="SCHOLAR">Scholar/Staff</option>
+              <option value="Center SDO">Center SDO</option>
+              <option value="House Parent">House Parent</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="saveEditAccount()">
+          <i class="bi bi-check-lg me-1"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Delete Account</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete the account of <strong id="delete-acc-name-label"></strong>? This cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="confirmDeleteAccount()">
+          <i class="bi bi-trash me-1"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+   <!-- FOOTER INSIDE MAIN CONTENT -->
+   <footer class="page-footer">
+      <div class="container-fluid px-0">
+        <div class="row text-center align-items-center">
+
+          <div class="col-md-4 text-md-start">
+            <span class="text-muted">University of Cebu - Main Campus</span>
+          </div>
+
+          <div class="col-md-4">
+            <span class="text-muted">System Developer:</span>
+            <span class="text-muted">Catherine Jane B. Barro</span>
+          </div>
+
+          <div class="col-md-4 text-md-end">
+            <span class="text-muted">Department of Computer Engineering</span>
+          </div>
+
+        </div>
+
+        <div class="text-center mt-2 fw-semibold text-success">
+          © <span id="year"></span> All Rights Reserved.
+        </div>
+      </div>
+  </footer>
+  
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+  import {
+    getFirestore,
+    collectionGroup,
+    collection,
+    getDocs,
+    getDoc,
+    query,
+    where,
+    orderBy,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp,
+    doc,
+    setDoc
+  } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNRUruPe1hAgGK1eJAGsGTnwIEcI7Oirs",
+    authDomain: "edm-transac.firebaseapp.com",
+    projectId: "edm-transac",
+    storageBucket: "edm-transac.firebasestorage.app",
+    messagingSenderId: "722463634080",
+    appId: "1:722463634080:web:15f9f12fea55e2283f0fc5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  function setHeaderDate() {
+    const today = new Date();
+    const options = { year: "numeric", month: "numeric", day: "numeric" };
+    document.getElementById("page-date").textContent = today.toLocaleDateString(undefined, options);
+  }
+
+  window.exportToExcel = function () {
+  const modal = new bootstrap.Modal(document.getElementById("exportModal"));
+  modal.show();
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+    const yearEl = document.getElementById("year");
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+    });
+
+window.confirmExport = async function () {
+  const fromVal = document.getElementById("export-date-from").value;
+  const toVal = document.getElementById("export-date-to").value;
+
+  if (!fromVal || !toVal) {
+    alert("Please select both a from and to date.");
+    return;
+  }
+
+  const fromDate = new Date(fromVal);
+  const toDate = new Date(toVal);
+  toDate.setHours(23, 59, 59, 999);
+
+  if (fromDate > toDate) {
+    alert("From date cannot be later than To date.");
+    return;
+  }
+
+  try {
+    const snap = await getDocs(collectionGroup(db, "transactions"));
+
+    const requests = [];
+    const liquidations = [];
+
+    snap.forEach(docSnap => {
+      const tx = docSnap.data();
+      const txDate = tx.createdAt?.toDate ? tx.createdAt.toDate() : null;
+
+      if (!txDate || txDate < fromDate || txDate > toDate) return;
+
+      const dateStr = txDate.toLocaleDateString();
+      const category = tx.details?.categories?.[0] || tx.details?.otherCategory || "—";
+
+      if (tx.type === "REQUEST" && tx.status === "RELEASED REQUEST") {
+        requests.push({
+          Name: tx.userName || "—",
+          University: tx.details?.university || "—",
+          "Dean's Lister": tx.details?.deanLister || "—",
+          Category: category,
+          Details: tx.details?.details || "—",
+          "Teacher/Contact": tx.details?.teacherName || "—",
+          "Amount Requested": tx.amount || 0,
+          "EDM Share": tx.review?.edmShare || "—",
+          "Amount to Release": tx.review?.amountToRelease || "—",
+          Status: tx.status || "—",
+          Remarks: tx.review?.remarks || "—",
+          Date: dateStr
+        });
+      }
+
+      if (tx.type === "LIQUIDATION" && tx.status === "APPROVED LIQUIDATION") {
+        const particulars = tx.details?.particulars || [];
+        const particularsText = particulars
+          .map((p, i) => `${i + 1}. ${p.description} | OR: ${p.orNumber} | ₱${p.amount}`)
+          .join("\n");
+
+        liquidations.push({
+          Name: tx.userName || "—",
+          University: tx.details?.university || "—",
+          "Dean's Lister": tx.details?.deanLister || "—",
+          Category: category,
+          "Amount Received": tx.details?.received || 0,
+          "EDM Share": tx.details?.share || 0,
+          "Excess/Refund": tx.details?.excessRefund || 0,
+          "Total Expenses": tx.details?.totalComputed || 0,
+          "Expense Breakdown": particularsText,
+          Status: tx.status || "—",
+          Remarks: tx.review?.remarks || "—",
+          Date: dateStr
+        });
+      }
+    });
+
+    if (requests.length === 0 && liquidations.length === 0) {
+      alert("No transactions found for the selected date range.");
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+
+    if (requests.length > 0) {
+      const ws1 = XLSX.utils.json_to_sheet(requests);
+      ws1["!cols"] = Object.keys(requests[0]).map(() => ({ wch: 22 }));
+      XLSX.utils.book_append_sheet(wb, ws1, "Released Requests");
+    }
+
+    if (liquidations.length > 0) {
+      const ws2 = XLSX.utils.json_to_sheet(liquidations);
+      ws2["!cols"] = Object.keys(liquidations[0]).map(() => ({ wch: 22 }));
+      XLSX.utils.book_append_sheet(wb, ws2, "Approved Liquidations");
+    }
+
+    const fileName = `transactions_${fromVal}_to_${toVal}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    bootstrap.Modal.getInstance(document.getElementById("exportModal")).hide();
+
+  } catch (err) {
+    console.error("Export error:", err);
+    alert("Failed to export: " + err.message);
+  }
+};
+// ------------------------------
+  // PENDING REQUESTS
+  // ------------------------------
+  let _pendingRows = []; // cache for filter/search
+
+  async function loadPendingRequests() {
+    const tbody = document.getElementById("pending-req-body");
+    const empty = document.getElementById("pending-req-empty");
+
+    tbody.innerHTML = "";
+    empty.classList.add("d-none");
+    empty.textContent = "";
+    _pendingRows = [];
+
+    try {
+      const q = query(
+        collectionGroup(db, "transactions"),
+        where("type", "==", "REQUEST"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      snap.forEach(docSnap => {
+        const tx = docSnap.data();
+        if (tx.status !== "SUBMITTED" && tx.status !== "PENDING REQUEST") return;
+
+        const name = tx.userName || "—";
+        const category = tx.details?.categories?.[0] || tx.details?.otherCategory || "—";
+        const amount = Number(tx.amount || 0);
+        const amountStr = `₱${amount.toLocaleString()}`;
+        const date = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : (tx.date || "—");
+        const status = tx.status || "—";
+
+        _pendingRows.push({ tx, docRef: docSnap.ref, name, category, amountStr, date, status });
+      });
+
+      renderPendingRows();
+
+      const filterEl = document.getElementById("pending-category-filter");
+      const searchEl = document.getElementById("pending-search");
+
+      filterEl.onchange = renderPendingRows;
+      searchEl.oninput = renderPendingRows;
+
+    } catch (err) {
+      console.error("Firestore ERROR:", err);
+      empty.classList.remove("d-none");
+      empty.textContent = "ERROR: " + err.message;
+    }
+  }
+
+  function renderPendingRows() {
+    const tbody = document.getElementById("pending-req-body");
+    const empty = document.getElementById("pending-req-empty");
+    const filterVal = document.getElementById("pending-category-filter")?.value || "ALL";
+    const searchVal = (document.getElementById("pending-search")?.value || "").toLowerCase();
+
+    tbody.innerHTML = "";
+
+    const filtered = _pendingRows.filter(r => {
+      const matchCategory = filterVal === "ALL" || r.category === filterVal;
+      const matchSearch =
+        !searchVal ||
+        r.name.toLowerCase().includes(searchVal) ||
+        r.category.toLowerCase().includes(searchVal) ||
+        r.amountStr.toLowerCase().includes(searchVal) ||
+        r.date.toLowerCase().includes(searchVal) ||
+        r.status.toLowerCase().includes(searchVal);
+      return matchCategory && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      empty.classList.remove("d-none");
+      empty.textContent = "No pending requests found.";
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    filtered.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${r.name}</td>
+        <td>${r.category}</td>
+        <td>${r.amountStr}</td>
+        <td>${r.date}</td>
+        <td>${r.status}</td>
+      `;
+      tr.onclick = () => showTransactionDetails(r.tx, r.docRef, false);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ------------------------------
+  // PENDING LIQUIDATIONS
+  // ------------------------------
+  let _pendingLiqRows = [];
+
+  async function loadPendingLiquidations() {
+    const tbody = document.getElementById("pending-liq-body");
+    const empty = document.getElementById("pending-liq-empty");
+
+    tbody.innerHTML = "";
+    empty.classList.add("d-none");
+    empty.textContent = "";
+    _pendingLiqRows = [];
+
+    try {
+      const q = query(
+        collectionGroup(db, "transactions"),
+        where("type", "==", "LIQUIDATION"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      snap.forEach(docSnap => {
+        const tx = docSnap.data();
+        if (tx.status === "APPROVED LIQUIDATION" || tx.status === "REJECTED LIQUIDATION") return;
+
+        const name = tx.userName || "—";
+        const category = tx.details?.categories?.[0] || tx.details?.otherCategory || "—";
+        const amount = Number(tx.amount || 0);
+        const amountStr = `₱${amount.toLocaleString()}`;
+        const date = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : (tx.date || "—");
+        const status = tx.status || "—";
+
+        _pendingLiqRows.push({ tx, docRef: docSnap.ref, name, category, amountStr, date, status });
+      });
+
+      renderPendingLiqRows();
+
+      document.getElementById("pending-liq-category-filter").onchange = renderPendingLiqRows;
+      document.getElementById("pending-liq-search").oninput = renderPendingLiqRows;
+
+    } catch (err) {
+      console.error("Firestore ERROR:", err);
+      empty.classList.remove("d-none");
+      empty.textContent = "ERROR: " + err.message;
+    }
+  }
+
+  function renderPendingLiqRows() {
+    const tbody = document.getElementById("pending-liq-body");
+    const empty = document.getElementById("pending-liq-empty");
+    const filterVal = document.getElementById("pending-liq-category-filter")?.value || "ALL";
+    const searchVal = (document.getElementById("pending-liq-search")?.value || "").toLowerCase();
+
+    tbody.innerHTML = "";
+
+    const filtered = _pendingLiqRows.filter(r => {
+      const matchCategory = filterVal === "ALL" || r.category === filterVal;
+      const matchSearch =
+        !searchVal ||
+        r.name.toLowerCase().includes(searchVal) ||
+        r.category.toLowerCase().includes(searchVal) ||
+        r.amountStr.toLowerCase().includes(searchVal) ||
+        r.date.toLowerCase().includes(searchVal) ||
+        r.status.toLowerCase().includes(searchVal);
+      return matchCategory && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      empty.classList.remove("d-none");
+      empty.textContent = "No pending liquidations found.";
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    filtered.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${r.name}</td>
+        <td>${r.category}</td>
+        <td>${r.amountStr}</td>
+        <td>${r.date}</td>
+        <td>${r.status}</td>
+      `;
+      tr.onclick = () => showTransactionDetails(r.tx, r.docRef, false);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ------------------------------
+  // VERIFIED REQUESTS (VERIFIED + REJECTED)
+  // ------------------------------
+  let _verifiedRows = []; // cache for filter/search
+
+  async function loadVerifiedRequests() {
+    const tbody = document.getElementById("approved-req-body");
+    const empty = document.getElementById("approved-req-empty");
+
+    tbody.innerHTML = "";
+    empty.classList.add("d-none");
+    empty.textContent = "";
+    _verifiedRows = [];
+
+    try {
+      const q = query(
+        collectionGroup(db, "transactions"),
+        where("type", "==", "REQUEST"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      snap.forEach(docSnap => {
+        const tx = docSnap.data();
+        if (tx.status !== "APPROVED REQUEST" && tx.status !== "REJECTED REQUEST") return;
+
+        const name = tx.userName || "—";
+        const category = tx.details?.categories?.[0] || tx.details?.otherCategory || "—";
+        const amount = Number(tx.amount || 0);
+        const amountStr = `₱${amount.toLocaleString()}`;
+        const date = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : (tx.date || "—");
+        const status = tx.status || "—";
+
+        _verifiedRows.push({ tx, docRef: docSnap.ref, name, category, amountStr, date, status });
+      });
+
+      renderVerifiedRows();
+
+      // wire up filter + search (only once — guard with a flag)
+      const filterEl = document.getElementById("verified-status-filter");
+      const searchEl = document.getElementById("verified-search");
+
+      filterEl.onchange = renderVerifiedRows;
+      searchEl.oninput = renderVerifiedRows;
+
+    } catch (err) {
+      console.error("Firestore ERROR:", err);
+      empty.classList.remove("d-none");
+      empty.textContent = "ERROR: " + err.message;
+    }
+  }
+
+  function renderVerifiedRows() {
+    const tbody = document.getElementById("approved-req-body");
+    const empty = document.getElementById("approved-req-empty");
+    const filterVal = document.getElementById("verified-status-filter")?.value || "ALL";
+    const searchVal = (document.getElementById("verified-search")?.value || "").toLowerCase();
+
+    tbody.innerHTML = "";
+
+    const filtered = _verifiedRows.filter(r => {
+      const matchStatus = filterVal === "ALL" || r.status === filterVal;
+      const matchSearch =
+        !searchVal ||
+        r.name.toLowerCase().includes(searchVal) ||
+        r.category.toLowerCase().includes(searchVal) ||
+        r.amountStr.toLowerCase().includes(searchVal) ||
+        r.date.toLowerCase().includes(searchVal) ||
+        r.status.toLowerCase().includes(searchVal);
+      return matchStatus && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      empty.classList.remove("d-none");
+      empty.textContent = "No verified/rejected requests found.";
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    filtered.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${r.name}</td>
+        <td>${r.category}</td>
+        <td>${r.amountStr}</td>
+        <td>${r.date}</td>
+        <td>${r.status}</td>
+      `;
+      tr.onclick = () => showTransactionDetails(r.tx, r.docRef, true);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ------------------------------
+  // APPROVED LIQUIDATIONS (view-only)
+  // ------------------------------
+  let _approvedLiqRows = [];
+
+  async function loadApprovedLiquidations() {
+    const tbody = document.getElementById("approved-liq-body");
+    const empty = document.getElementById("approved-liq-empty");
+
+    tbody.innerHTML = "";
+    empty.classList.add("d-none");
+    empty.textContent = "";
+    _approvedLiqRows = [];
+
+    try {
+      const q = query(
+        collectionGroup(db, "transactions"),
+        where("type", "==", "LIQUIDATION"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      snap.forEach(docSnap => {
+        const tx = docSnap.data();
+        if (tx.status !== "APPROVED LIQUIDATION") return;
+
+        const name = tx.userName || "—";
+        const category = tx.details?.categories?.[0] || tx.details?.otherCategory || "—";
+        const amount = Number(tx.amount || 0);
+        const amountStr = `₱${amount.toLocaleString()}`;
+        const date = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : (tx.date || "—");
+        const status = tx.status || "—";
+
+        _approvedLiqRows.push({ tx, docRef: docSnap.ref, name, category, amountStr, date, status });
+      });
+
+      renderApprovedLiqRows();
+
+      document.getElementById("approved-liq-category-filter").onchange = renderApprovedLiqRows;
+      document.getElementById("approved-liq-search").oninput = renderApprovedLiqRows;
+
+    } catch (err) {
+      console.error("Firestore ERROR:", err);
+      empty.classList.remove("d-none");
+      empty.textContent = "ERROR: " + err.message;
+    }
+  }
+
+  function renderApprovedLiqRows() {
+    const tbody = document.getElementById("approved-liq-body");
+    const empty = document.getElementById("approved-liq-empty");
+    const filterVal = document.getElementById("approved-liq-category-filter")?.value || "ALL";
+    const searchVal = (document.getElementById("approved-liq-search")?.value || "").toLowerCase();
+
+    tbody.innerHTML = "";
+
+    const filtered = _approvedLiqRows.filter(r => {
+      const matchCategory = filterVal === "ALL" || r.category === filterVal;
+      const matchSearch =
+        !searchVal ||
+        r.name.toLowerCase().includes(searchVal) ||
+        r.category.toLowerCase().includes(searchVal) ||
+        r.amountStr.toLowerCase().includes(searchVal) ||
+        r.date.toLowerCase().includes(searchVal) ||
+        r.status.toLowerCase().includes(searchVal);
+      return matchCategory && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      empty.classList.remove("d-none");
+      empty.textContent = "No approved liquidations found.";
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    filtered.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${r.name}</td>
+        <td>${r.category}</td>
+        <td>${r.amountStr}</td>
+        <td>${r.date}</td>
+        <td>${r.status}</td>
+      `;
+      tr.onclick = () => showTransactionDetails(r.tx, r.docRef, true);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ------------------------------
+  // RELEASED REQUESTS (view-only)
+  // ------------------------------
+  let _releasedReqRows = [];
+
+  async function loadReleasedRequests() {
+    const tbody = document.getElementById("released-req-body");
+    const empty = document.getElementById("released-req-empty");
+
+    tbody.innerHTML = "";
+    empty.classList.add("d-none");
+    empty.textContent = "";
+    _releasedReqRows = [];
+
+    try {
+      const q = query(
+        collectionGroup(db, "transactions"),
+        where("type", "==", "REQUEST"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      snap.forEach(docSnap => {
+        const tx = docSnap.data();
+        if (tx.status !== "RELEASED REQUEST") return;
+
+        const name = tx.userName || "—";
+        const category = tx.details?.categories?.[0] || tx.details?.otherCategory || "—";
+        const amount = Number(tx.amount || 0);
+        const amountStr = `₱${amount.toLocaleString()}`;
+        const date = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : (tx.date || "—");
+        const status = tx.status || "—";
+
+        _releasedReqRows.push({ tx, docRef: docSnap.ref, name, category, amountStr, date, status });
+      });
+
+      renderReleasedReqRows();
+
+      document.getElementById("released-req-category-filter").onchange = renderReleasedReqRows;
+      document.getElementById("released-req-search").oninput = renderReleasedReqRows;
+
+    } catch (err) {
+      console.error("Firestore ERROR:", err);
+      empty.classList.remove("d-none");
+      empty.textContent = "ERROR: " + err.message;
+    }
+  }
+
+  function renderReleasedReqRows() {
+    const tbody = document.getElementById("released-req-body");
+    const empty = document.getElementById("released-req-empty");
+    const filterVal = document.getElementById("released-req-category-filter")?.value || "ALL";
+    const searchVal = (document.getElementById("released-req-search")?.value || "").toLowerCase();
+
+    tbody.innerHTML = "";
+
+    const filtered = _releasedReqRows.filter(r => {
+      const matchCategory = filterVal === "ALL" || r.category === filterVal;
+      const matchSearch =
+        !searchVal ||
+        r.name.toLowerCase().includes(searchVal) ||
+        r.category.toLowerCase().includes(searchVal) ||
+        r.amountStr.toLowerCase().includes(searchVal) ||
+        r.date.toLowerCase().includes(searchVal) ||
+        r.status.toLowerCase().includes(searchVal);
+      return matchCategory && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      empty.classList.remove("d-none");
+      empty.textContent = "No released requests found.";
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    filtered.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${r.name}</td>
+        <td>${r.category}</td>
+        <td>${r.amountStr}</td>
+        <td>${r.date}</td>
+        <td>${r.status}</td>
+      `;
+      tr.onclick = () => showTransactionDetails(r.tx, r.docRef, true);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ------------------------------
+  // UNLIQUIDATED REQUESTS (view-only)
+  // ------------------------------
+  let _unliqReqRows = [];
+
+    async function loadUnliquidatedRequests() {
+    const tbody = document.getElementById("unliq-req-body");
+    const empty = document.getElementById("unliq-req-empty");
+
+    tbody.innerHTML = "";
+    empty.classList.add("d-none");
+    empty.textContent = "";
+    _unliqReqRows = [];
+
+    try {
+      const reqQ = query(
+        collectionGroup(db, "transactions"),
+        where("type", "==", "REQUEST"),
+        orderBy("createdAt", "desc")
+      );
+      const reqSnap = await getDocs(reqQ);
+
+      const liqQ = query(
+        collectionGroup(db, "transactions"),
+        where("type", "==", "LIQUIDATION"),
+        orderBy("createdAt", "desc")
+      );
+      const liqSnap = await getDocs(liqQ);
+
+      // Build a set of requestIds that have a liquidation filed (any status except rejected)
+      const liquidatedRequestIds = new Set();
+      liqSnap.forEach(d => {
+        const liq = d.data();
+        console.log("Liquidation doc:", d.id, "| requestId:", liq.requestId, "| status:", liq.status); // ← debug
+        if (liq.requestId && liq.status !== "REJECTED LIQUIDATION") {
+          liquidatedRequestIds.add(liq.requestId);
+        }
+      });
+
+      console.log("Liquidated requestIds set:", [...liquidatedRequestIds]); // ← debug
+      reqSnap.forEach(docSnap => {
+        const tx = docSnap.data();
+        const status = tx.status || "";
+
+       // Only RELEASED requests are candidates
+        if (status !== "RELEASED REQUEST") return;
+
+        // If a liquidation exists that references this request's doc ID, skip it
+        if (liquidatedRequestIds.has(docSnap.id)) return;
+
+        const name = tx.userName || "—";
+        const category = tx.details?.categories?.[0] || tx.details?.otherCategory || "—";
+        const amount = Number(tx.amount || 0);
+        const amountStr = `₱${amount.toLocaleString()}`;
+        const date = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : (tx.date || "—");
+
+        _unliqReqRows.push({ tx, docRef: docSnap.ref, name, category, amountStr, date, status });
+      });
+
+      renderUnliqReqRows();
+
+      document.getElementById("unliq-req-category-filter").onchange = renderUnliqReqRows;
+      document.getElementById("unliq-req-search").oninput = renderUnliqReqRows;
+
+    } catch (err) {
+      console.error("Firestore ERROR:", err);
+      empty.classList.remove("d-none");
+      empty.textContent = "ERROR: " + err.message;
+    }
+  }
+
+  function renderUnliqReqRows() {
+    const tbody = document.getElementById("unliq-req-body");
+    const empty = document.getElementById("unliq-req-empty");
+    const filterVal = document.getElementById("unliq-req-category-filter")?.value || "ALL";
+    const searchVal = (document.getElementById("unliq-req-search")?.value || "").toLowerCase();
+
+    tbody.innerHTML = "";
+
+    const filtered = _unliqReqRows.filter(r => {
+      const matchCategory = filterVal === "ALL" || r.category === filterVal;
+      const matchSearch =
+        !searchVal ||
+        r.name.toLowerCase().includes(searchVal) ||
+        r.category.toLowerCase().includes(searchVal) ||
+        r.amountStr.toLowerCase().includes(searchVal) ||
+        r.date.toLowerCase().includes(searchVal) ||
+        r.status.toLowerCase().includes(searchVal);
+      return matchCategory && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      empty.classList.remove("d-none");
+      empty.textContent = "No unliquidated requests found.";
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    filtered.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${r.name}</td>
+        <td>${r.category}</td>
+        <td>${r.amountStr}</td>
+        <td>${r.date}</td>
+        <td>${r.status}</td>
+      `;
+      tr.onclick = () => showTransactionDetails(r.tx, r.docRef, true);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ------------------------------
+  // TRANSACTION DETAILS MODAL (ONE renderer)
+  // ------------------------------
+  function showTransactionDetails(tx, docRef, readOnly = false) {
+    const body = document.getElementById("requestDetailsBody");
+    const titleEl = document.getElementById("detailsModalTitle");
+    const remarksEl = document.getElementById("remarks-input");
+    const approveBtn = document.getElementById("btn-approve");
+    const rejectBtn = document.getElementById("btn-reject");
+    const remarksLabel = document.getElementById("remarks-label");
+
+    // reset UI each open
+    approveBtn.style.display = "";
+    rejectBtn.style.display = "";
+    remarksEl.style.display = "";
+    remarksLabel.style.display = "";
+    remarksEl.value = "";
+
+    const safe = (v) =>
+      v === undefined || v === null || String(v).trim() === "" ? "—" : v;
+
+    const peso = (v) => `₱${Number(v || 0).toLocaleString()}`;
+
+    const type = tx?.type || "—";
+    titleEl.textContent = type === "LIQUIDATION" ? "Liquidation Details" : "Request Details";
+
+    const status = safe(tx?.status);
+    const statusUpper = String(status).toUpperCase();
+    const badgeClass =
+      statusUpper.includes("REJECT") ? "bg-danger" :
+      statusUpper.includes("PENDING") || statusUpper.includes("SUBMITTED") ? "bg-warning text-dark" :
+      statusUpper === "LIQUIDATED" ? "bg-primary" :
+      statusUpper.includes("APPROVED") || statusUpper.includes("RELEASED") || statusUpper.includes("VERIFIED") ? "bg-success" :
+      "bg-secondary";
+
+    const dateStr = tx?.createdAt?.toDate
+      ? tx.createdAt.toDate().toLocaleString()
+      : (tx?.date || "—");
+
+    const name = safe(tx?.userName);
+    const deanLister = safe(tx?.details?.deanLister);
+    const university = safe(tx?.details?.university);
+
+    const category = tx?.details?.categories?.[0] || tx?.details?.otherCategory || "—";
+    const amountRequested = tx?.amount !== undefined ? peso(tx.amount) : "—";
+
+    const requestDetails =
+      tx?.details?.details ??
+      tx?.details?.requestDetails ??
+      "";
+
+    const teacherName = safe(tx?.details?.teacherName);
+    const teacherContact = safe(tx?.details?.teacherContact);
+
+    const existingEdmShare =
+      tx?.review?.edmShare ??
+      tx?.review?.share ??
+      tx?.details?.share ??
+      "";
+
+    const existingTotalToRelease =
+      tx?.review?.amountToRelease ??
+      tx?.review?.totalToRelease ??
+      tx?.review?.amountReleased ??
+      "";
+
+    const existingRemarks =
+      (tx?.review?.remarks ?? tx?.remarks ?? tx?.remark ?? "").toString().trim();
+
+    // remarks textbox only used for editable mode
+    remarksEl.value = existingRemarks || "";
+
+    let html = `
+      <div class="p-3 bg-white border border-success rounded">
+
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <div class="fw-bold text-success fs-5">Transaction Details</div>
+            <div class="text-muted small">${dateStr}</div>
+          </div>
+          <span class="badge ${badgeClass} px-3 py-2">${status}</span>
+        </div>
+
+        <hr class="my-3" />
+
+        <div class="row mb-2">
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Name</div>
+            <div>${name}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Dean’s List</div>
+            <div>${deanLister}</div>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <div class="fw-bold text-success">University</div>
+          <div>${university}</div>
+        </div>
+
+        <div class="mb-2">
+          <div class="fw-bold text-success">Category</div>
+          <div>${category}</div>
+        </div>
+
+        <div class="mb-2">
+          <div class="fw-bold text-success">Amount</div>
+          <div>${amountRequested}</div>
+        </div>
+    `;
+
+    if (type === "REQUEST") {
+      html += `
+        <div class="mb-2">
+          <div class="fw-bold text-success">Request Details</div>
+          <div>${safe(requestDetails)}</div>
+        </div>
+
+        ${teacherName && teacherName !== "—" ? `
+          <div class="mb-2">
+            <div class="fw-bold text-success">Teacher and Contact Number</div>
+            <div>${teacherName}</div>
+          </div>
+        ` : ""}
+
+        <hr class="my-3" />
+
+        <div class="fw-bold text-success mb-2">Center SDO Validation</div>
+      `;
+
+      // ✅ Pending => INPUTS
+      if (!readOnly) {
+        html += `
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-success">EDM Share</label>
+              <input type="number" class="form-control" id="admin-edm-share"
+                value="${String(existingEdmShare)}" placeholder="Enter EDM share">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-success">Total Amount to be Released</label>
+              <input type="number" class="form-control" id="admin-amount-to-release"
+                value="${String(existingTotalToRelease)}" placeholder="Enter total amount">
+            </div>
+          </div>
+        `;
+      }
+
+      // ✅ Verified/Released/Unliquidated => DISPLAY ONLY (same format)
+      if (readOnly) {
+        html += `
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="fw-bold text-success">EDM Share</div>
+              <div>${existingEdmShare === "" ? "—" : `₱${Number(existingEdmShare).toLocaleString()}`}</div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="fw-bold text-success">Total Amount to be Released</div>
+              <div>${existingTotalToRelease === "" ? "—" : `₱${Number(existingTotalToRelease).toLocaleString()}`}</div>
+            </div>
+          </div>
+
+          ${existingRemarks ? `
+            <div class="mt-3">
+              <div class="fw-bold text-success">Remarks</div>
+              <div>${existingRemarks}</div>
+            </div>
+          ` : ""}
+        `;
+      }
+    }
+    if (type === "LIQUIDATION") {
+      const particulars = tx.details?.particulars || [];
+
+      html += `
+        <hr class="my-3" />
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Amount Received</div>
+            <div>${peso(tx.details?.received || 0)}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="fw-bold text-success">EDM Share</div>
+            <div>${peso(tx.details?.share || 0)}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Excess / Refund</div>
+            <div>${peso(tx.details?.excessRefund || 0)}</div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Total Computed</div>
+            <div>${peso(tx.details?.totalComputed || 0)}</div>
+          </div>
+        </div>
+
+        <hr class="my-3" />
+
+        <div class="fw-bold text-success mb-2">Expense Breakdown</div>
+        ${renderParticularsTable(particulars)}
+      `;
+
+      if (readOnly && existingRemarks) {
+        html += `
+          <hr class="my-3" />
+          <div class="mb-2">
+            <div class="fw-bold text-success">Remarks</div>
+            <div>${existingRemarks}</div>
+          </div>
+        `;
+      }
+    }
+
+    html += `</div>`;
+    body.innerHTML = html;
+
+    const modal = new bootstrap.Modal(document.getElementById("requestDetailsModal"));
+    modal.show();
+
+    // If viewing a released or liquidated request, check for linked liquidation
+    if (readOnly && (tx.status === "RELEASED REQUEST" || tx.status === "LIQUIDATED")) {
+      const el = document.getElementById("linked-liquidation-status");
+
+      // Use the userId from the tx to navigate to the right subcollection
+      const userId = tx.userId;
+      if (!userId) {
+        if (el) el.textContent = "No user ID found.";
+      } else {
+        getDocs(collection(db, "users", userId, "transactions")).then(allSnap => {
+          if (!el) return;
+
+          let found = false;
+          allSnap.forEach(d => {
+            const liq = d.data();
+            if (liq.type === "LIQUIDATION" && liq.requestId === docRef.id) {
+              found = true;
+              const badgeColor =
+                liq.status === "APPROVED LIQUIDATION" ? "bg-success" :
+                liq.status === "REJECTED LIQUIDATION" ? "bg-danger" :
+                "bg-warning text-dark";
+              el.innerHTML = `<span class="badge ${badgeColor}">${liq.status}</span>`;
+            }
+          });
+
+          if (!found) {
+            el.innerHTML = `<span class="badge bg-warning text-dark">No liquidation filed yet</span>`;
+          }
+        }).catch(err => {
+          console.error("Linked liquidation check failed:", err);
+          if (el) el.textContent = "Unable to check.";
+        });
+      }
+    }
+    // view-only => hide controls and stop
+    if (readOnly) {
+      approveBtn.style.display = "none";
+      rejectBtn.style.display = "none";
+      remarksEl.style.display = "none";
+      remarksLabel.style.display = "none";
+      approveBtn.onclick = null;
+      rejectBtn.onclick = null;
+      return;
+    }
+
+    // editable mode => wire handlers
+    approveBtn.onclick = null;
+    rejectBtn.onclick = null;
+
+    approveBtn.onclick = async () => {
+      try {
+        const remarks = remarksEl.value.trim();
+
+        let payloadReview = {
+          action: "APPROVED",
+          remarks: remarks || "",
+          reviewedAt: serverTimestamp()
+        };
+
+        if (type === "REQUEST") {
+          const edmShare = document.getElementById("admin-edm-share")?.value ?? "";
+          const amountToRelease = document.getElementById("admin-amount-to-release")?.value ?? "";
+
+          if (edmShare === "" || amountToRelease === "") {
+            alert("EDM Share and Total Amount to be Released are required to approve.");
+            return;
+          }
+
+          payloadReview = {
+            ...payloadReview,
+            edmShare: Number(edmShare),
+            amountToRelease: Number(amountToRelease)
+          };
+        }
+
+        const newStatus =
+          type === "LIQUIDATION" ? "APPROVED LIQUIDATION" : "APPROVED REQUEST";
+
+        await updateDoc(docRef, {
+          status: newStatus,
+          review: payloadReview
+        });
+
+        // If approving a liquidation, also mark the linked request as LIQUIDATED
+        if (type === "LIQUIDATION" && tx.requestId) {
+          try {
+            // find the request doc across all users
+            const reqQ = query(
+              collectionGroup(db, "transactions"),
+              where("type", "==", "REQUEST")
+            );
+            const reqSnap = await getDocs(reqQ);
+            reqSnap.forEach(async reqDoc => {
+              if (reqDoc.id === tx.requestId) {
+                await updateDoc(reqDoc.ref, { status: "LIQUIDATED" });
+              }
+            });
+          } catch (err) {
+            console.error("Failed to update linked request status:", err);
+          }
+        }
+        modal.hide();
+
+        if (type === "REQUEST") loadPendingRequests();
+        if (type === "LIQUIDATION") loadPendingLiquidations();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to approve: " + err.message);
+      }
+    };
+
+    rejectBtn.onclick = async () => {
+      try {
+        const remarks = remarksEl.value.trim();
+        if (!remarks) {
+          alert("Remarks are required when rejecting.");
+          return;
+        }
+
+        let payloadReview = {
+          action: "REJECTED",
+          remarks,
+          reviewedAt: serverTimestamp()
+        };
+
+        if (type === "REQUEST") {
+          const edmShare = document.getElementById("admin-edm-share")?.value ?? "";
+          const amountToRelease = document.getElementById("admin-amount-to-release")?.value ?? "";
+
+          payloadReview = {
+            ...payloadReview,
+            edmShare: edmShare === "" ? "" : Number(edmShare),
+            amountToRelease: amountToRelease === "" ? "" : Number(amountToRelease)
+          };
+        }
+
+        const newStatus =
+          type === "LIQUIDATION" ? "REJECTED LIQUIDATION" : "REJECTED REQUEST";
+
+        await updateDoc(docRef, {
+          status: newStatus,
+          review: payloadReview
+        });
+
+        modal.hide();
+
+        if (type === "REQUEST") loadPendingRequests();
+        if (type === "LIQUIDATION") loadPendingLiquidations();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to reject: " + err.message);
+      }
+    };
+  }
+
+  // ------------------------------
+  // TAB NAV
+  // ------------------------------
+  window.showTab = function(tabName, btn = null) {
+    const tabs = ["pending-req","pending-liq","approved-req","approved-liq","released-req","unliquidated-req","add-accounts"];
+    tabs.forEach(t => {
+      const el = document.getElementById(t);
+      el.classList.toggle("my-tab", true);
+      el.style.display = (t === tabName ? "block" : "none");
+    });
+
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+
+    const tabTitleMap = {
+      "pending-req": "Pending Requests",
+      "pending-liq": "Pending Liquidations",
+      "approved-req": "Verified Requests",
+      "approved-liq": "Approved Liquidations",
+      "released-req": "Released Requests",
+      "unliquidated-req": "Unliquidated Requests",
+      "add-accounts": "Add Accounts"
+    };
+    document.getElementById("page-title").textContent = tabTitleMap[tabName] || "";
+
+    setHeaderDate();
+
+    if (tabName === "pending-req") loadPendingRequests();
+    if (tabName === "pending-liq") loadPendingLiquidations();
+    if (tabName === "approved-req") loadVerifiedRequests();
+    if (tabName === "approved-liq") loadApprovedLiquidations();
+    if (tabName === "released-req") loadReleasedRequests();
+    if (tabName === "unliquidated-req") loadUnliquidatedRequests();
+    if (tabName === "add-accounts") loadAccounts();
+  };
+
+  window.logout = function () {
+  const modal = new bootstrap.Modal(document.getElementById("logoutModal"));
+  modal.show();
+  };
+
+  window.confirmLogout = function () {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+  };
+
+  window.createAccount = async function () {
+    const name = document.getElementById("acc-name").value.trim();
+    const userId = document.getElementById("acc-userid").value.trim();
+    const password = document.getElementById("acc-password").value.trim();
+    const university = document.getElementById("acc-university").value.trim();
+    const role = document.getElementById("acc-role").value;
+
+    if (!name || !userId || !password || !role) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    try {
+      const userRef = doc(db, "users", userId);
+
+      await setDoc(userRef, {
+        name,
+        password,
+        university,
+        role,
+        createdAt: serverTimestamp()
+      });
+
+      alert("Account created successfully!");
+
+      document.getElementById("acc-name").value = "";
+      document.getElementById("acc-userid").value = "";
+      document.getElementById("acc-password").value = "";
+      document.getElementById("acc-university").value = "";
+      document.getElementById("acc-role").value = "";
+
+    } catch (err) {
+      console.error("Create account error:", err);
+      alert("Failed to create account: " + err.message);
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadPendingRequests();
+    setHeaderDate();
+  });
+
+  // ------------------------------
+  // MANAGE ACCOUNTS — list, edit, delete
+  // ------------------------------
+  let _allAccounts = [];
+  let _deleteTargetId = null;
+  let _editTargetId = null;
+
+  async function loadAccounts() {
+    const tbody = document.getElementById("accounts-list-body");
+    const empty = document.getElementById("accounts-list-empty");
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>`;
+    empty.classList.add("d-none");
+    _allAccounts = [];
+
+    try {
+      const snap = await getDocs(collection(db, "users"));
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        _allAccounts.push({
+          id: docSnap.id,
+          name: d.name || "—",
+          role: d.role || "—",
+          university: d.university || "—",
+          password: d.password || ""
+        });
+      });
+      renderAccountRows();
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-danger">${err.message}</td></tr>`;
+    }
+  }
+
+  window.renderAccountRows = function () {
+    const tbody = document.getElementById("accounts-list-body");
+    const empty = document.getElementById("accounts-list-empty");
+    const search = (document.getElementById("acc-search")?.value || "").toLowerCase();
+
+    tbody.innerHTML = "";
+
+    const roleOrder = { "Center SDO": 0, "House Parent": 1, "SCHOLAR": 2 };
+
+    const filtered = _allAccounts
+      .filter(a =>
+        !search ||
+        a.name.toLowerCase().includes(search) ||
+        a.id.toLowerCase().includes(search) ||
+        a.role.toLowerCase().includes(search) ||
+        a.university.toLowerCase().includes(search)
+      )
+      .sort((a, b) => {
+        const roleDiff = (roleOrder[a.role] ?? 3) - (roleOrder[b.role] ?? 3);
+        if (roleDiff !== 0) return roleDiff;
+        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+      });
+
+    if (filtered.length === 0) {
+      empty.classList.remove("d-none");
+      return;
+    }
+    empty.classList.add("d-none");
+
+    filtered.forEach(a => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${a.name}</td>
+        <td><code>${a.id}</code></td>
+        <td><span class="badge bg-success">${a.role}</span></td>
+        <td>${a.university}</td>
+        <td class="text-center">
+          <button class="btn btn-sm btn-outline-success me-1" onclick="openEditAccount('${a.id}')">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="openDeleteAccount('${a.id}', '${a.name.replace(/'/g, "\\'")}')">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  };
+
+  window.openEditAccount = function (userId) {
+    const acc = _allAccounts.find(a => a.id === userId);
+    if (!acc) return;
+
+    _editTargetId = userId;
+    document.getElementById("edit-acc-userid-original").value = userId;
+    document.getElementById("edit-acc-name").value = acc.name;
+    document.getElementById("edit-acc-university").value = acc.university === "—" ? "" : acc.university;
+    document.getElementById("edit-acc-role").value = acc.role;
+    document.getElementById("edit-acc-password").value = "";
+
+    new bootstrap.Modal(document.getElementById("editAccountModal")).show();
+  };
+
+  window.saveEditAccount = async function () {
+    const userId = _editTargetId;
+    if (!userId) return;
+
+    const name = document.getElementById("edit-acc-name").value.trim();
+    const university = document.getElementById("edit-acc-university").value.trim();
+    const role = document.getElementById("edit-acc-role").value;
+    const newPassword = document.getElementById("edit-acc-password").value.trim();
+
+    if (!name || !role) {
+      alert("Name and Role are required.");
+      return;
+    }
+
+    try {
+      const userRef = doc(db, "users", userId);
+      const existing = await getDoc(userRef);
+      const payload = {
+        name,
+        university,
+        role,
+        password: newPassword || (existing.exists() ? existing.data().password : "")
+      };
+
+      await updateDoc(userRef, payload);
+
+      // update local cache
+      const idx = _allAccounts.findIndex(a => a.id === userId);
+      if (idx !== -1) {
+        _allAccounts[idx] = { ..._allAccounts[idx], name, university, role };
+      }
+
+      bootstrap.Modal.getInstance(document.getElementById("editAccountModal")).hide();
+      renderAccountRows();
+      alert("Account updated successfully!");
+    } catch (err) {
+      alert("Failed to update: " + err.message);
+    }
+  };
+
+  window.openDeleteAccount = function (userId, userName) {
+    _deleteTargetId = userId;
+    document.getElementById("delete-acc-name-label").textContent = userName;
+    new bootstrap.Modal(document.getElementById("deleteAccountModal")).show();
+  };
+
+  window.confirmDeleteAccount = async function () {
+    if (!_deleteTargetId) return;
+
+    try {
+      await deleteDoc(doc(db, "users", _deleteTargetId));
+      _allAccounts = _allAccounts.filter(a => a.id !== _deleteTargetId);
+      _deleteTargetId = null;
+      bootstrap.Modal.getInstance(document.getElementById("deleteAccountModal")).hide();
+      renderAccountRows();
+      alert("Account deleted.");
+    } catch (err) {
+      alert("Failed to delete: " + err.message);
+    }
+  };
+
+
+  function renderParticularsTable(particulars = []) {
+    if (!Array.isArray(particulars) || particulars.length === 0) {
+      return `<div class="text-muted">No particulars listed.</div>`;
+    }
+
+    const rows = particulars.map((p, idx) => {
+      const desc = (p?.description ?? "").toString().trim() || "—";
+      const orNo = (p?.orNumber ?? "").toString().trim() || "—";
+      const amt = Number(p?.amount || 0);
+
+      return `
+        <tr>
+          <td class="text-center">${idx + 1}</td>
+          <td>${desc}</td>
+          <td class="text-center">${orNo}</td>
+          <td class="text-end">₱${amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const total = particulars.reduce((sum, p) => sum + Number(p?.amount || 0), 0);
+
+    return `
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0">
+          <thead class="table-success text-center">
+            <tr>
+              <th style="width:60px;">#</th>
+              <th>Particulars</th>
+              <th style="width:180px;">OR Sequence No.</th>
+              <th style="width:160px;">Amount (₱)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+          <tfoot>
+            <tr class="table-light">
+              <th colspan="3" class="text-end">TOTAL</th>
+              <th class="text-end">₱${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    `;
+  }
+</script>
+<script>
+  (function () {
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark-mode");
+    }
+  })();
+
+  window.toggleDarkMode = function () {
+    const isDark = document.body.classList.toggle("dark-mode");
+    localStorage.setItem("darkMode", isDark);
+    updateDarkModeUI(isDark);
+  };
+
+  function updateDarkModeUI(isDark) {
+    const icon = document.getElementById("dark-mode-icon");
+    const label = document.getElementById("dark-mode-label");
+    if (icon) icon.className = isDark
+      ? "bi bi-sun-fill"
+      : "bi bi-moon-stars-fill";
+    if (label) label.textContent = isDark ? "Light Mode" : "Dark Mode";
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const isDark = localStorage.getItem("darkMode") === "true";
+    updateDarkModeUI(isDark);
+  });
+</script>
+</body>
+</html>

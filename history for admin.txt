@@ -1,0 +1,84 @@
+ // History storage (temporary)
+  const historyData = [];
+  async function loadHistory() {
+    const tbody = document.getElementById("history-body");
+    const empty = document.getElementById("no-history");
+
+    tbody.innerHTML = "";
+
+    const q = query(
+      collection(db, "users", currentUser.id, "transactions"),
+      orderBy("createdAt", "desc")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      empty.classList.remove("d-none");
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    snap.forEach(doc => {
+      const tx = doc.data();
+
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+
+      const category =
+        tx.details?.categories?.[0] ||
+        tx.details?.otherCategory ||
+        "—";
+
+      tr.innerHTML = `
+        <td><strong>${tx.type}</strong></td>
+        <td>${category}</td>
+        <td>${userName}</td>
+        <td>₱${Number(tx.amount).toLocaleString()}</td>
+        <td>${tx.createdAt ? tx.createdAt.toDate().toLocaleDateString() : "—"}</td>
+      `;
+
+      tr.onclick = () => showTransactionDetails(tx);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  window.showTransactionDetails = function (tx) {
+  const body = document.getElementById("detailsBody");
+
+  let html = `
+    <p><strong>Type:</strong> ${tx.type}</p>
+    <p><strong>Status:</strong> ${tx.status}</p>
+    <p><strong>Amount:</strong> ₱${tx.amount.toLocaleString()}</p>
+    <p><strong>Date:</strong> ${tx.createdAt?.toDate().toLocaleString()}</p>
+    <hr>
+  `;
+
+  if (tx.type === "REQUEST") {
+    html += `
+      <p><strong>University:</strong> ${tx.details.university}</p>
+      <p><strong>Teacher:</strong> ${tx.details.teacherName}</p>
+      <p><strong>Contact:</strong> ${tx.details.teacherContact}</p>
+      <p><strong>Category:</strong> ${tx.details.categories.join(", ")}</p>
+      <p><strong>Dean Lister:</strong> ${tx.details.deanLister}</p>
+    `;
+  }
+
+  if (tx.type === "LIQUIDATION") {
+    html += `<h6>Expense Breakdown</h6><ul>`;
+    tx.details.particulars.forEach(p => {
+      html += `<li>${p.description} — ₱${p.amount}</li>`;
+    });
+    html += `</ul>
+      <p><strong>Total Computed:</strong> ₱${tx.details.totalComputed}</p>
+    `;
+  }
+
+  body.innerHTML = html;
+
+  new bootstrap.Modal(
+    document.getElementById("detailsModal")
+  ).show();
+};

@@ -1,0 +1,1913 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scholar  Dashboard</title>
+    <link rel="icon" type="jpg" href="favicon.jpg">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="darkmode.css">
+
+    <style>
+      .nav-btn {
+        background: none;
+        border: none;
+        color: #ffffff;
+        font-weight: 500;
+        font-size: 1rem;
+        margin-right: 1rem;
+        cursor: pointer;
+      }
+      .nav-btn.active {
+        border-bottom: 2px solid #155724;
+        font-weight: bold;
+      }
+
+      #greeting {
+        font-size: 2rem;
+        letter-spacing: 0.5px;
+      }
+
+      input[type="date"] {
+        border: none;
+        background: transparent;
+        padding: 0;
+        font-weight: 500;
+        color: #212529; 
+      }
+
+      input[type="date"]:focus {
+        outline: none;
+        box-shadow: none;
+      }
+
+      html, body {
+        min-height: 100vh;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+      .tab-content {
+        flex: 1;
+      }
+      footer {
+        margin-top: auto !important;
+      }
+    </style>
+  </head>
+  <body class="bg-success bg-opacity-10">
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title">Confirm Logout</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to logout?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" onclick="confirmLogout()">Yes, Logout</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success px-3">
+      <div class="container-fluid">
+        <!-- Logo -->
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <img src="logo.png"       alt="Logo" class="logo-default" style="height: 40px; width: auto;">
+          <img src="logo-light.png" alt="Logo" class="logo-dark"    style="height: 40px; width: auto;">
+        </a>
+    
+        <!-- Centered Buttons -->
+        <div class="mx-auto d-flex align-items-center">
+          <button class="nav-btn active" id="tab-request" onclick="showTab('request')">Request Form</button>
+          <button class="nav-btn" id="tab-liquidation" onclick="showTab('liquidation')">Liquidation Form</button>
+          <button class="nav-btn" id="tab-history" onclick="showTab('history')">History</button>
+        </div>
+    
+        <!-- Logout -->
+          <div class="d-flex">
+            <button onclick="toggleDarkMode()" class="btn btn-success btn-sm ms-2 d-flex align-items-center">
+              <i class="bi bi-moon-stars-fill me-1" id="dark-mode-icon"></i>
+              <span id="dark-mode-label">Dark</span>
+            </button>
+            <a href="#"
+            onclick="logout()"
+            class="btn btn-success btn-sm ms-3 d-flex align-items-center" 
+            style="color: white; border: none;">
+            <i class="bi bi-box-arrow-right me-1"></i> Logout
+            </a>
+          </div>
+      </div>
+  </nav>
+    
+  <div class="text-center my-4">
+    <h2 id="greeting" class="fw-bold text-success"></h2>
+    <p class="text-muted mb-0">Request and Liquidation Transaction</p>
+  </div>
+
+  <!-- Request Form -->
+  <div id="request" class="tab-content">
+      <div class="card p-4 mb-4 border-success shadow-sm" style="max-width: 1000px; margin: 0 auto;">
+
+        <!-- Logo and Date -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <img src="logo.png"       alt="Logo" class="logo-default" style="height: 60px; width: auto;">
+            <img src="logo-light.png" alt="Logo" class="logo-dark"    style="height: 60px; width: auto;">
+            <input type="date" id="request-date" readonly>
+        </div>
+
+        <!-- Title -->
+        <h5 class="text-dark text-center mb-4">REQUEST FORM</h5>
+
+        <!-- Student Info + Dean's Lister -->
+        <div class="row mb-3 align-items-center">
+            <!-- Name of Student -->
+                <label class="col-sm-2 col-form-label text-dark">Name of Student:</label>
+                <div class="col-sm-6 d-flex align-items-center">
+                <input type="text" class="form-control border-success bg-success bg-opacity-25 text-dark" placeholder="Enter full name" id="student-name">
+                </div>
+      
+            <!-- Dean's Lister -->
+            <div class="col-sm-4 d-flex align-items-center">
+            <label class="text-dark me-2 mb-0">Dean's Lister:</label>
+            <div class="form-check form-check-inline mb-0">
+                <input class="form-check-input" type="radio" name="dean-lister" id="dean-yes" value="Yes">
+                <label class="form-check-label text-dark" for="dean-yes">Yes</label>
+            </div>
+            <div class="form-check form-check-inline mb-0 ms-2">
+                <input class="form-check-input" type="radio" name="dean-lister" id="dean-no" value="No">
+                <label class="form-check-label text-dark" for="dean-no">No</label>
+            </div>
+            </div>
+        </div>
+      
+        <!-- University -->
+        <div class="row mb-3 align-items-center">
+            <label class="col-sm-2 col-form-label text-dark">University:</label>
+            <div class="col-sm-10">
+            <input type="text" class="form-control border-success bg-success bg-opacity-25 text-dark" placeholder="Enter your university" id="university">
+            </div>
+        </div>
+      
+        <!-- Nature of Request / Category -->
+        <div class="mb-3">
+            <div class="mb-3">
+                <label class="form-label text-dark fw-bold">
+                NATURE OF REQUEST/CATEGORY (Check all that apply):
+                </label>
+            </div>
+          
+            <div class="ms-3"> <!-- Added indentation -->
+                <div class="row">
+                  <div class="col-md-5 text-dark">
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Board Exam Fees & Expenses" id="req1">
+                      <label class="form-check-label text-dark" for="cat1">1. Board Exam Fees & Expenses</label>
+                      <input class="form-check-input request-category" type="checkbox"
+                        value="Graduation Expense">
+
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Graduation Expense" id="req2">
+                      <label class="form-check-label text-dark" for="cat2">2. Graduation Expense</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="OJT Expenses" id="req3">
+                      <label class="form-check-label text-dark" for="cat3">3. OJT Expenses</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="School Projects" id="req4">
+                      <label class="form-check-label text-dark" for="cat6">4. School Projects</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="Transporation" id="req5">
+                        <label class="form-check-label text-dark" for="cat6">5.Transporation</label>
+                      </div>
+                  </div>
+              
+                  <div class="col-md-5 text-dark">
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="School Uniforms" id="req6">
+                      <label class="form-check-label text-dark" for="cat7">6. School Uniforms</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Social Research/Thesis" id="req7">
+                      <label class="form-check-label text-dark" for="cat8">7. School Research/Thesis</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Books and Modules" id="req8">
+                      <label class="form-check-label text-dark" for="cat9">8. Books and Modules</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="Seminar/Educational Field Trips" id="req9">
+                        <label class="form-check-label text-dark" for="cat9">9. Seminar/Educational Field Trips</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="Internet/Phone/Post" id="req10">
+                        <label class="form-check-label text-dark" for="cat9">10. Internet/Phone/Post</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 mb-2">
+                <label class="form-label text-dark fw-bold">
+                (For Transportation, attach route slip for details of your whereabouts.)
+                </label>
+            </div>  
+
+        <!-- Teacher Info -->
+        <div class="row mb-3 align-items-center">
+          <label class="col-sm-3 col-form-label text-dark">Name and contact of teacher asking for request:</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control border-success bg-success bg-opacity-25 text-dark" placeholder="Teacher's name and contact" id="teacher-info">
+          </div>
+        </div>
+        <div class="row mb-3 align-items-center">
+            <label class="col-sm-3 col-form-label text-dark">Details of Request:</label>
+            <div class="col-sm-9">
+              <input type="text" class="form-control border-success bg-success bg-opacity-25 text-dark" placeholder="Details of Request" id="details-other">
+            </div>
+        </div>
+
+        <!-- Other Category -->
+        <div class="mb-2">
+            <div class="mb-2">
+                <label class="form-label text-dark fw-bold">
+                OTHER CATEGORY:
+                </label>
+            </div>
+          
+            <div class="mt-3 ms-3"> <!--  indentation -->
+                <div class="row">
+                  <div class="col-md-5 text-dark">
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Social Follow-Up/Mission" id="req11">
+                      <label class="form-check-label text-dark" for="cat1">1. Social Follow-Up/Mission</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Center Activities" id="req12">
+                      <label class="form-check-label text-dark" for="cat2">2. Center Activities</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Festivities" id="req13">
+                      <label class="form-check-label text-dark" for="cat3">3. Festivities</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Seminars/Modular Sessions" id="req14">
+                      <label class="form-check-label text-dark" for="cat6">4. Seminars/Modular Sessions</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="Repairs and Maintenance" id="req15">
+                        <label class="form-check-label text-dark" for="cat6">5. Repairs and Maintenance</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="House Rental" id="req16">
+                        <label class="form-check-label text-dark" for="cat6">6. House Rental</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="Utilities: Water/Electricity" id="req17">
+                        <label class="form-check-label text-dark" for="cat6">7. Utilities: Water/Electricity</label>
+                    </div>
+                  </div>
+              
+                  <div class="col-md-6 text-dark">
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Food Budget" id="req18">
+                      <label class="form-check-label text-dark" for="cat7">8. Food Budget</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Drinkable Water" id="req19">
+                      <label class="form-check-label text-dark" for="cat8">9. Drinkable Water</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input single-category" type="checkbox" value="Hygiene/Cleaning Materials" id="req20">
+                      <label class="form-check-label text-dark" for="cat9">10. Hygiene/Cleaning Materials</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="IT/House Equipment" id="req21">
+                        <label class="form-check-label text-dark" for="cat9">11. IT/House Equipment</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="Gas and Firewood" id="req22">
+                        <label class="form-check-label text-dark" for="cat9">12. Gas and Firewood</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="Office Internet/Phone" id="req23">
+                        <label class="form-check-label text-dark" for="cat9">13. Office Internet/Phone</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input single-category" type="checkbox" value="Health Expenses" id="req24">
+                        <label class="form-check-label text-dark" for="cat9">14. Health Expenses</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row mt-3 mb-3 align-items-center ms-3">
+                <label class="col-auto form-label text-dark fw-bold">Others (not stated above):</label>
+                <div class="col">
+                  <input 
+                    type="text" 
+                    class="form-control border-success bg-success bg-opacity-25 text-dark" 
+                    placeholder="Specify other category" 
+                    id="other-category"
+                    style="resize: horizontal;" 
+                  >
+                </div>
+              </div>
+              <div class="row mb-3 align-items-center">
+                <label class="col-sm-3 col-form-label text-dark">Details of Request:</label>
+                <div class="col-sm-9">
+                  <input type="text" class="form-control border-success bg-success bg-opacity-25 text-dark" placeholder="Details of Request" id="details-nature">
+                </div>
+            </div>
+              
+        <!-- Amount Requested -->
+        <div class="row mb-3 align-items-center">
+          <label class="col-sm-3 col-form-label text-dark">Amount Requested (₱):</label>
+          <div class="col-sm-9">
+            <input type="number" class="form-control border-success bg-success bg-opacity-25 text-dark" placeholder="Enter amount" id="amount-requested">
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-end mt-3">
+            <button class="btn btn-success text-white" data-bs-toggle="modal" data-bs-target="#confirmModal">
+            Submit Request
+            </button>
+        </div>
+        
+          <!-- Confirmation Modal -->
+          <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content border-success">
+                  <div class="modal-header bg-success text-white">
+                  <h5 class="modal-title" id="confirmModalLabel">Confirm Request</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                  Are you sure you want to submit this request?
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                    type="button"
+                    class="btn btn-success"
+                    data-bs-dismiss="modal"
+                    onclick="submitRequest()"
+                  >
+                    Yes
+                  </button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                  </div>
+              </div>
+              </div>
+          </div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Liquidation Form -->
+  <div id="liquidation" class="tab-content" style="display:none;">
+    <div class="card p-4 mb-4 border-success shadow-sm" style="max-width: 1000px; margin: 0 auto;">
+    
+      <!-- Logo and Date -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <img src="logo.png"       alt="Logo" class="logo-default" style="height: 60px; width: auto;">
+        <img src="logo-light.png" alt="Logo" class="logo-dark"    style="height: 60px; width: auto;">
+        <input type="date" id="liquidation-date" readonly>
+    </div>
+      <!-- Title -->
+      <h5 class="text-dark text-center mb-4">LIQUIDATION FORM</h5>
+
+      <!-- Student Info + Dean's Lister -->
+      <div class="row mb-3 align-items-center">
+          <!-- Name of Student -->
+              <label class="col-sm-2 col-form-label text-dark">Name of Student:</label>
+              <div class="col-sm-6 d-flex align-items-center">
+              <input type="text" class="form-control border-success bg-success bg-opacity-25 text-dark" placeholder="Enter full name" id="student-name">
+              </div>
+    
+          <!-- Dean's Lister -->
+          <div class="col-sm-4 d-flex align-items-center">
+          <label class="text-dark me-2 mb-0">Dean's Lister:</label>
+          <div class="form-check form-check-inline mb-0">
+              <input class="form-check-input" type="radio" name="dean-lister" id="liq-dean-yes" value="Yes">
+              <label class="form-check-label text-dark" for="dean-yes">Yes</label>
+          </div>
+          <div class="form-check form-check-inline mb-0 ms-2">
+              <input class="form-check-input" type="radio" name="dean-lister" id="liq-dean-no" value="No">
+              <label class="form-check-label text-dark" for="dean-no">No</label>
+          </div>
+          </div>
+      </div>
+    
+      <!-- University -->
+      <div class="row mb-3 align-items-center">
+          <label class="col-sm-2 col-form-label text-dark">University:</label>
+          <div class="col-sm-10">
+          <input type="text" class="form-control border-success bg-success bg-opacity-25 text-dark" placeholder="Enter your university" id="university">
+          </div>
+      </div>
+    
+      <!-- Nature of Request / Category -->
+      <div class="mb-3">
+          <div class="mb-2">
+              <label class="form-label text-dark fw-bold">
+              NATURE OF REQUEST/CATEGORY (Check all that apply):
+              </label>
+          </div>
+        
+          <div class="ms-3"> <!-- Added indentation -->
+              <div class="row">
+                <div class="col-md-5 text-dark">
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Board Exam Fees & Expenses" id="liq1">
+                    <label class="form-check-label text-dark" for="cat1">1. Board Exam Fees & Expenses</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Graduation Expense" id="liq2">
+                    <label class="form-check-label text-dark" for="cat2">2. Graduation Expense</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="OJT Expenses" id="liq3">
+                    <label class="form-check-label text-dark" for="cat3">3. OJT Expenses</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="School Projects" id="liq4">
+                    <label class="form-check-label text-dark" for="cat6">4. School Projects</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="Transporation" id="liq5">
+                      <label class="form-check-label text-dark" for="cat6">5.Transporation</label>
+                    </div>
+                </div>
+            
+                <div class="col-md-6 text-dark">
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="School Uniforms" id="liq6">
+                    <label class="form-check-label text-dark" for="cat7">6. School Uniforms</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Social Research/Thesis" id="liq7">
+                    <label class="form-check-label text-dark" for="cat8">7. School Research/Thesis</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Books and Modules" id="liq8">
+                    <label class="form-check-label text-dark" for="cat9">8. Books and Modules</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="Semianr/Educational Field Trips" id="liq9">
+                      <label class="form-check-label text-dark" for="cat9">9. Seminar/Educational Field Trips</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="Internet/Phone/Post" id="liq0">
+                      <label class="form-check-label text-dark" for="cat9">10. Internet/Phone/Post</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <div class="mt-3 mb-2">
+              <label class="form-label text-dark fw-bold">
+              (For Transportation, attach route slip for details of your whereabouts.)
+              </label>
+          </div>  
+
+      <!-- Other Category -->
+      <div class="mb-2">
+          <div class="mb-3">
+              <label class="form-label text-dark fw-bold">
+              OTHER CATEGORY:
+              </label>
+          </div>
+        
+          <div class="ms-3"> <!--  indentation -->
+              <div class="row">
+                <div class="col-md-5 text-dark">
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Social Follow-Up/Mission" id="liq1">
+                    <label class="form-check-label text-dark" for="cat1">1. Social Follow-Up/Mission</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Center Activities" id="liq2">
+                    <label class="form-check-label text-dark" for="cat2">2. Center Activities</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Festivities" id="liq3">
+                    <label class="form-check-label text-dark" for="cat3">3. Festivities</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Seminars/Modular Sessions" id="liq4">
+                    <label class="form-check-label text-dark" for="cat6">4. Seminars/Modular Sessions</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="Repairs and Maintenance" id="liq5">
+                      <label class="form-check-label text-dark" for="cat6">5. Repairs and Maintenance</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="House Rental" id="liq6">
+                      <label class="form-check-label text-dark" for="cat6">6. House Rental</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="Utilities: Water/Electricity" id="liq7">
+                      <label class="form-check-label text-dark" for="cat6">7. Utilities: Water/Electricity</label>
+                  </div>
+                </div>
+            
+                <div class="col-md-6 text-dark">
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Food Budget" id="liq8">
+                    <label class="form-check-label text-dark" for="cat7">8. Food Budget</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Drinkable Water" id="liq9">
+                    <label class="form-check-label text-dark" for="cat8">9. Drinkable Water</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input liquidation-category" type="checkbox" value="Hygiene/Cleaning Materials" id="liq20">
+                    <label class="form-check-label text-dark" for="cat9">10. Hygiene/Cleaning Materials</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="IT/House Equipment" id="liq21">
+                      <label class="form-check-label text-dark" for="cat9">11. IT/House Equipment</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="Gas and Firewood" id="liq22">
+                      <label class="form-check-label text-dark" for="cat9">12. Gas and Firewood</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="Office Internet/Phone" id="liq23">
+                      <label class="form-check-label text-dark" for="cat9">13. Office Internet/Phone</label>
+                  </div>
+                  <div class="form-check">
+                      <input class="form-check-input liquidation-category" type="checkbox" value="Health Expenses" id="liq24">
+                      <label class="form-check-label text-dark" for="cat9">14. Health Expenses</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-3 mb-3 align-items-center ms-3">
+              <label class="col-auto form-label text-dark fw-bold">Others (not stated above):</label>
+              <div class="col">
+                <input 
+                  type="text" 
+                  class="form-control border-success bg-success bg-opacity-25 text-dark" 
+                  placeholder="Specify other category" 
+                  id="liq-other-category"
+                  style="resize: horizontal;" 
+                >
+              </div>
+            </div>
+            
+<!-- PARTICULARS TABLE -->
+<div class="mb-4">
+  <label class="form-label text-dark fw-bold">Breakdown of Expenses</label>
+
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle text-dark">
+      <thead class="table-success text-center">
+        <tr>
+          <th style="width: 60px;">#</th>
+          <th>Particulars</th>
+          <th style="width: 180px;">OR Sequence No.</th>
+          <th style="width: 160px;">Amount (₱)</th>
+          <th style="width: 80px;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="particulars-body">
+        <tr>
+          <td class="text-center row-number">1</td>
+          <td><input type="text" class="form-control" placeholder="Enter particulars"></td>
+          <td><input type="text" class="form-control" placeholder="OR No."></td>
+          <td><input type="number" class="form-control amount-input" placeholder="0.00"></td>
+          <td class="text-center">
+            <button class="btn btn-danger btn-sm" onclick="removeRow(this)">✕</button>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="table-light">
+          <th colspan="3" class="text-end">TOTAL</th>
+          <th class="text-end" id="particulars-total">₱0.00</th>
+          <th></th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <button class="btn btn-success btn-sm mt-2" onclick="addRow()">
+    + Add Row
+  </button>
+</div>
+
+      <!-- SUMMARY SECTION -->
+      <div class="row mb-2 align-items-center">
+        <label class="col-sm-6 col-form-label text-dark fw-bold">
+          Total Amount Requested:
+        </label>
+        <div class="col-sm-6">
+          <input type="number" class="form-control bg-success bg-opacity-25" id="total-requested" placeholder="Enter amount requested" >
+        </div>
+      </div>
+
+      <div class="row mb-2 align-items-center">
+        <label class="col-sm-6 col-form-label text-dark fw-bold">
+          Amount Received:
+        </label>
+        <div class="col-sm-6">
+          <input type="number" class="form-control" placeholder="Enter amount" id="amount-received">
+        </div>
+      </div>
+
+      <div class="row mb-2 align-items-center">
+        <label class="col-sm-6 col-form-label text-dark fw-bold">
+          EDM Share:
+        </label>
+        <div class="col-sm-6">
+          <input type="number" class="form-control" placeholder="Enter EDM share" id="liq-share">
+        </div>
+      </div>
+
+      <div class="row mb-3 align-items-center">
+        <label class="col-sm-6 col-form-label text-dark fw-bold">
+          Amount to be returned by the scholar (excess cash) / Amount to be refunded to the scholar (deficit):
+        </label>
+        <div class="col-sm-6">
+          <input type="number" class="form-control" placeholder="Enter amount" id="iuli-kuwang">
+        </div>
+      </div>
+
+
+      <!-- Submit Button -->
+      <div class="d-flex justify-content-end mt-3">
+        <button
+          type="button"
+          class="btn btn-success text-white"
+          data-bs-toggle="modal"
+          data-bs-target="#confirmLiquidationModal"
+        >
+          Submit Liquidation
+        </button>
+      </div>
+      
+      <!-- Confirmation Modal -->
+      <div class="modal fade" id="confirmLiquidationModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-success">
+            <div class="modal-header bg-success text-white">
+              <h5 class="modal-title">Confirm Liquidation</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              Are you sure you want to submit this liquidation?
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-success"
+                data-bs-dismiss="modal"
+                onclick="submitLiquidation()"
+              >
+                Yes
+              </button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+
+    <!-- History -->
+      <div id="history" class="tab-content" style="display:none;">
+        <div class="card p-4 mb-4 border-success shadow-sm" style="max-width: 1000px; margin: 0 auto;">
+    
+          <!-- Logo and Date -->
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <img src="logo.png"       alt="Logo" class="logo-default" style="height: 60px; width: auto;">
+            <img src="logo-light.png" alt="Logo" class="logo-dark"    style="height: 60px; width: auto;">
+            <input type="date" id="history-date" readonly>
+          </div>
+        <h6 class="text-success mb-3">Transaction History</h6>
+          <!-- 🔎 FILTER + SEARCH BAR -->
+          <div class="row mb-3 align-items-center">
+
+            <div class="col-md-3">
+              <select id="history-type-filter" class="form-select">
+                <option value="ALL">All</option>
+                <option value="PENDING REQUEST">Pending</option>
+                <option value="APPROVED REQUEST">Approved</option>
+                <option value="RELEASED REQUEST">Released</option>
+                <option value="PENDING LIQUIDATION">Pending Liquidation</option>
+                <option value="APPROVED LIQUIDATION">Approved Liquidation</option>
+                <option value="LIQUIDATED">Liquidated</option>
+                <option value="REJECTED REQUEST">Rejected Request</option>
+                <option value="REJECTED LIQUIDATION">Rejected Liquidation</option>
+              </select>
+            </div>
+
+            <div class="col-md-9">
+              <input
+                type="text"
+                id="history-search"
+                class="form-control"
+                placeholder="Search category, status, amount, or date..."
+              >
+            </div>
+
+          </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle">
+            <thead class="table-success text-center">
+              <tr>
+                <th style="width: 18%;">Category</th>
+                <th style="width: 20%;">Details</th>
+                <th style="width: 12%;">Amount (₱)</th>
+                <th style="width: 12%;">Date</th>
+                <th style="width: 23%;">Status</th>
+                <th style="width: 15%;">Remarks/Action</th>
+              </tr>
+            </thead>
+            <tbody id="history-body">
+            </tbody>
+          </table>
+        </div>
+
+        <div id="no-history" class="text-center text-muted py-4 d-none">
+          No transactions found.
+        </div>
+      </div>
+
+      <!-- COMPLETED LIQUIDATIONS CARD -->
+      <div class="card p-4 mb-4 border-success shadow-sm mt-4" style="max-width: 1000px; margin: 0 auto;">
+        <h6 class="text-success mb-3">Completed Transactions</h6>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle">
+            <thead class="table-success text-center">
+              <tr>
+                <th style="width: 18%;">Category</th>
+                <th style="width: 25%;">Details</th>
+                <th style="width: 12%;">Amount (₱)</th>
+                <th style="width: 12%;">Date</th>
+                <th style="width: 23%;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="completed-liq-body"></tbody>
+          </table>
+        </div>
+
+        <div id="no-completed-liq" class="text-center text-muted py-4 d-none">
+          No completed liquidations yet.
+        </div>
+      </div>
+
+  <!-- Transaction Details Modal -->
+  <div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-success">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">Transaction Details</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="detailsBody"></div>
+      </div>
+    </div>
+  </div>
+  
+  </div>
+  <!-- FOOTER INSIDE MAIN CONTENT -->
+  <footer class="mt-3" style="font-size:0.75rem;">
+  
+    <!-- FULL WIDTH LINE -->
+    <div class="border-top py-3">
+  
+      <div class="container">
+        <div class="row text-center align-items-center">
+  
+          <!-- LEFT -->
+          <div class="col-md-4 text-md-start">
+            <span class="text-muted">
+              University of Cebu - Main Campus
+            </span>
+          </div>
+  
+          <!-- CENTER -->
+          <div class="col-md-4">
+            <span class="text-muted">System Developer:</span>
+            <span class="text-muted">
+              Catherine Jane B. Barro
+            </span>
+          </div>
+  
+          <!-- RIGHT -->
+          <div class="col-md-4 text-md-end">
+            <span class="text-muted">
+              Department of Computer Engineering
+            </span>
+          </div>
+  
+        </div>
+  
+        <!-- SECOND LINE -->
+        <div class="text-center mt-2 fw-semibold text-success">
+          
+          © <span id="year"></span> All Rights Reserved.
+        </div>
+      </div>
+  
+    </div>
+  </footer>
+  </body>
+
+  <script>
+
+  function addRow() {
+  const tableBody = document.getElementById('particulars-body');
+  const row = document.createElement('tr');
+  const rowCount = tableBody.querySelectorAll('tr').length + 1;
+
+  row.innerHTML = `
+    <td class="text-center row-number">${rowCount}</td>
+    <td><input type="text" class="form-control" placeholder="Enter particulars"></td>
+    <td><input type="text" class="form-control" placeholder="OR No."></td>
+    <td><input type="number" class="form-control amount-input" placeholder="0.00"></td>
+    <td class="text-center">
+      <button class="btn btn-danger btn-sm" onclick="removeRow(this)">✕</button>
+    </td>
+  `;
+
+  tableBody.appendChild(row);
+}
+  document.addEventListener("DOMContentLoaded", () => {
+    const yearEl = document.getElementById("year");
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+  });
+function removeRow(btn) {
+  btn.closest('tr').remove();
+  renumberRows();
+  computeTotal();
+}
+
+function renumberRows() {
+  const rows = document.querySelectorAll('#particulars-body tr');
+  rows.forEach((row, idx) => {
+    const numCell = row.querySelector('.row-number');
+    if (numCell) numCell.textContent = idx + 1;
+  });
+}
+
+function computeTotal() {
+  let total = 0;
+  document.querySelectorAll('.amount-input').forEach(input => {
+    total += Number(input.value) || 0;
+  });
+
+  // update footer total display
+  const footerTotal = document.getElementById('particulars-total');
+  if (footerTotal) {
+    footerTotal.textContent = `₱${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  // also keep the hidden summary field in sync
+  const totalRequested = document.getElementById('total-requested');
+  if (totalRequested) totalRequested.value = total.toFixed(2);
+}
+
+document.addEventListener('input', function (e) {
+  if (e.target.classList.contains('amount-input')) {
+    computeTotal();
+  }
+});
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script type ="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      query,
+      orderBy,
+      serverTimestamp,
+      deleteDoc,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCNRUruPe1hAgGK1eJAGsGTnwIEcI7Oirs",
+        authDomain: "edm-transac.firebaseapp.com",
+        projectId: "edm-transac",
+        storageBucket: "edm-transac.firebasestorage.app",
+        messagingSenderId: "722463634080",
+        appId: "1:722463634080:web:15f9f12fea55e2283f0fc5"
+      };
+      
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      let currentUser = null;
+      let _editingRequestId = null;
+
+      document.addEventListener("DOMContentLoaded", () => {
+      currentUser = JSON.parse(sessionStorage.getItem("userData"));
+
+      if (!currentUser || currentUser.role !== "SCHOLAR") {
+        window.location.href = "index.html";
+        return;
+      }
+
+      // Greeting
+      document.getElementById("greeting").textContent =
+        `Welcome, ${currentUser.name}`;
+
+      // University display
+      const uniEl = document.getElementById("university-display");
+      if (uniEl) {
+        uniEl.textContent = currentUser.university || "";
+      }
+
+      document.querySelectorAll("#student-name").forEach(input => {
+        input.value = currentUser.name;
+      });
+
+      document.querySelectorAll("#university").forEach(input => {
+        input.value = currentUser.university || "";
+      });
+    });
+
+    // History storage (temporary)
+    const historyData = [];
+
+    async function loadHistory() {
+    const tbody = document.getElementById("history-body");
+    const empty = document.getElementById("no-history");
+
+    tbody.innerHTML = "";
+    historyData.length = 0;
+    empty.classList.add("d-none");
+
+    if (!currentUser || !currentUser.id) {
+      empty.textContent = "User not logged in.";
+      empty.classList.remove("d-none");
+      return;
+    }
+
+    const snap = await getDocs(query(
+      collection(db, "users", currentUser.id, "transactions"),
+      orderBy("createdAt", "desc")
+    ));
+
+    const allTx = [];
+    snap.forEach(docSnap => allTx.push({ id: docSnap.id, ...docSnap.data() }));
+
+    // Separate requests and liquidations
+    const requests = allTx.filter(tx => tx.type === "REQUEST");
+    const liquidations = allTx.filter(tx => tx.type === "LIQUIDATION");
+
+    // Build a map: requestId -> most recent liquidation by createdAt
+    const liqByRequestId = {};
+    liquidations.forEach(liq => {
+      if (!liq.requestId) return;
+
+      const existing = liqByRequestId[liq.requestId];
+
+      if (!existing) {
+        liqByRequestId[liq.requestId] = liq;
+      } else {
+        // Always keep the most recently created liquidation
+        const existingTime = existing.createdAt?.toDate?.() || new Date(0);
+        const newTime = liq.createdAt?.toDate?.() || new Date(0);
+        if (newTime > existingTime) {
+          liqByRequestId[liq.requestId] = liq;
+        }
+      }
+    });
+
+// Merge: for each request, attach its linked liquidation
+requests.forEach(req => {
+      const linkedLiq = liqByRequestId[req.id] || null;
+
+      let displayStatus = req.status;
+
+      if (linkedLiq) {
+        displayStatus = linkedLiq.status;
+      }
+
+      // Approved liquidations go to completed table, not main history
+      if (linkedLiq && linkedLiq.status === "APPROVED LIQUIDATION") return;
+
+      historyData.push({ ...req, _linkedLiq: linkedLiq, _displayStatus: displayStatus });
+    });
+
+    renderCompletedLiquidations(requests, liqByRequestId);
+
+    if (historyData.length === 0) {
+      empty.classList.remove("d-none");
+      return;
+    }
+
+    renderHistoryTable(historyData);
+    filterHistory();
+  }
+
+  function renderCompletedLiquidations(requests, liqByRequestId) {
+    const tbody = document.getElementById("completed-liq-body");
+    const empty = document.getElementById("no-completed-liq");
+
+    tbody.innerHTML = "";
+
+    const completed = requests
+      .map(req => ({ ...req, _linkedLiq: liqByRequestId[req.id] || null }))
+      .filter(tx => tx._linkedLiq && tx._linkedLiq.status === "APPROVED LIQUIDATION");
+
+    if (completed.length === 0) {
+      empty.classList.remove("d-none");
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    completed.forEach(tx => {
+      const tr = document.createElement("tr");
+
+      const category =
+        tx._linkedLiq.details?.categories?.[0] ||
+        tx._linkedLiq.details?.otherCategory ||
+        tx.details?.categories?.[0] ||
+        "—";
+
+      const details = tx.details?.details || tx.details?.requestDetails || "—";
+      const shortDetails = details.length > 40 ? details.substring(0, 40) + "..." : details;
+
+      const liqDate = tx._linkedLiq.createdAt?.toDate
+        ? tx._linkedLiq.createdAt.toDate().toLocaleDateString()
+        : "—";
+
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${category}</td>
+        <td title="${details}">${shortDetails}</td>
+        <td class="text-end">₱${Number(tx._linkedLiq.amount || 0).toLocaleString()}</td>
+        <td class="text-center">${liqDate}</td>
+        <td class="text-center"><span class="badge bg-success px-3 py-2 d-block">APPROVED LIQUIDATION</span></td>
+      `;
+
+      tr.onclick = () => showTransactionDetails(tx);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderHistoryTable(data) {
+  const tbody = document.getElementById("history-body");
+  const empty = document.getElementById("no-history");
+
+  tbody.innerHTML = "";
+
+  if (data.length === 0) {
+    empty.classList.remove("d-none");
+    return;
+  }
+
+  empty.classList.add("d-none");
+
+  data.forEach(tx => {
+    const tr = document.createElement("tr");
+
+    const category =
+      tx.details?.categories?.[0] ||
+      tx.details?.otherCategory ||
+      "—";
+
+    const details = (tx.details?.details || tx.details?.requestDetails || "—");
+    const shortDetails = details.length > 40 ? details.substring(0, 40) + "..." : details;
+
+    const displayStatus = (tx._displayStatus || tx.status || "—").toString().trim();
+    const statusUpper = displayStatus.toUpperCase();
+
+    const canDelete =
+      statusUpper === "PENDING REQUEST" &&
+      !tx._linkedLiq;
+
+    const isRejected =
+      statusUpper === "REJECTED REQUEST" ||
+      statusUpper === "REJECTED LIQUIDATION";
+
+    const remarksText = (
+      tx._linkedLiq?.review?.remarks ??
+      tx._linkedLiq?.remarks ??
+      tx.review?.remarks ??
+      tx.remarks ??
+      tx.remark ??
+      ""
+    ).toString().trim();
+
+    const shortRemarks = remarksText.length > 40
+      ? remarksText.substring(0, 20) + "..."
+      : remarksText;
+
+    tr.innerHTML = `
+      <td>${category}</td>
+      <td title="${details}">${shortDetails}</td>
+      <td class="text-end">₱${Number(tx.amount || 0).toLocaleString()}</td>
+      <td class="text-center">
+        ${tx.createdAt ? tx.createdAt.toDate().toLocaleDateString() : "—"}
+      </td>
+     <td class="text-center"><span class="badge ${
+        statusUpper.includes("REJECT") ? "bg-danger" :
+        statusUpper.includes("PENDING") ? "bg-warning text-dark" :
+        statusUpper === "RELEASED REQUEST" ? "bg-info text-dark" :
+        statusUpper.includes("APPROVED") || statusUpper === "LIQUIDATED" ? "bg-success" :
+        "bg-secondary"
+      } px-3 py-2 d-block">${displayStatus}</span></td>
+      <td class="text-center">
+        ${
+          canDelete
+            ? `<button class="btn btn-sm btn-danger">Delete</button>`
+            : isRejected && remarksText
+              ? `<span title="${remarksText}">${shortRemarks}</span>`
+              : ""
+        }
+      </td>
+    `;
+
+    tr.style.cursor = "pointer";
+    tr.onclick = () => showTransactionDetails(tx);
+
+    if (canDelete) {
+      const deleteBtn = tr.querySelector("button");
+      deleteBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const confirmDelete = confirm("Are you sure you want to delete this request?");
+        if (!confirmDelete) return;
+
+        try {
+          await deleteDoc(doc(db, "users", currentUser.id, "transactions", tx.id));
+          alert("Request deleted successfully.");
+          loadHistory();
+        } catch (err) {
+          console.error(err);
+          alert("Failed to delete request.");
+        }
+      });
+    }
+
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+  function filterHistory() {
+  const typeFilter = document.getElementById("history-type-filter").value;
+  const searchText = document.getElementById("history-search").value.toLowerCase();
+
+  let filtered = historyData;
+
+  // Filter by type
+  if (typeFilter !== "ALL") {
+  filtered = filtered.filter(tx =>
+    (tx._displayStatus || tx.status || "") === typeFilter
+  );
+}
+
+  // Search filter
+  if (searchText) {
+    filtered = filtered.filter(tx => {
+      const category =
+        tx.details?.categories?.[0] ||
+        tx.details?.otherCategory ||
+        "";
+
+        return (
+        category.toLowerCase().includes(searchText) ||
+        (tx._displayStatus || tx.status || "").toLowerCase().includes(searchText) ||
+        String(tx.amount || "").includes(searchText) ||
+        (tx.createdAt?.toDate()?.toLocaleDateString() || "").includes(searchText)
+      );
+    });
+  }
+
+  renderHistoryTable(filtered);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const typeFilter = document.getElementById("history-type-filter");
+  const searchInput = document.getElementById("history-search");
+
+  if (typeFilter) typeFilter.addEventListener("change", filterHistory);
+  if (searchInput) searchInput.addEventListener("input", filterHistory);
+});
+
+
+window.showTransactionDetails = async function (tx) {
+  const body = document.getElementById("detailsBody");
+
+  const safe = (v) =>
+    v === undefined || v === null || String(v).trim() === "" ? "—" : v;
+  const peso = (v) => `₱${Number(v || 0).toLocaleString()}`;
+
+  const dateStr = tx?.createdAt?.toDate
+    ? tx.createdAt.toDate().toLocaleString()
+    : "—";
+
+  const status = safe(tx?.status);
+  const statusUpper = String(status).toUpperCase();
+
+  const badgeClass =
+    statusUpper.includes("REJECT") ? "bg-danger" :
+    statusUpper.includes("PENDING") ? "bg-warning text-dark" :
+    statusUpper.includes("APPROVED") || statusUpper.includes("RELEASED") ? "bg-success" :
+    statusUpper === "LIQUIDATED" ? "bg-primary" :
+    "bg-secondary";
+
+  const name = safe(tx?.userName);
+  const deanLister = safe(tx?.details?.deanLister);
+  const university = safe(tx?.details?.university);
+  const category = tx?.details?.categories?.[0] || tx?.details?.otherCategory || "—";
+  const requestDetails = tx?.details?.detailsNature || tx?.details?.details || "";
+  const requestDetailsOther = tx?.details?.detailsOther || "";
+  const teacherAndContact = safe(tx?.details?.teacherName);
+  const amountRequested = tx?.amount !== undefined ? peso(tx.amount) : "—";
+
+  const remarks = (
+    tx?.review?.remarks ?? tx?.review?.remark ??
+    tx?.remarks ?? tx?.remark ??
+    tx?.details?.remarks ?? tx?.details?.remark ?? ""
+  ).toString().trim();
+
+  const edmShare = tx?.review?.edmShare !== undefined ? peso(tx.review.edmShare) : "—";
+  const amountReceived = tx?.review?.amountToRelease !== undefined
+    ? peso(tx.review.amountToRelease)
+    : tx?.details?.received !== undefined ? peso(tx.details.received) : "—";
+
+  const isApprovedOrReleased =
+    statusUpper.includes("APPROVED") || statusUpper.includes("RELEASED") || statusUpper === "LIQUIDATED";
+
+  // ── REQUEST BOX ──
+  let html = `
+    <div class="p-3 bg-white border border-success rounded mb-3">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <div class="fw-bold text-success fs-5">Request Details</div>
+          <div class="text-muted small">${dateStr}</div>
+        </div>
+        <span class="badge ${badgeClass} px-3 py-2">${status}</span>
+      </div>
+
+      <hr class="my-3" />
+
+      <div class="row mb-2">
+        <div class="col-md-6">
+          <div class="fw-bold text-success">Name</div>
+          <div>${name}</div>
+        </div>
+        <div class="col-md-6">
+          <div class="fw-bold text-success">Dean's List</div>
+          <div>${deanLister}</div>
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <div class="fw-bold text-success">University</div>
+        <div>${university}</div>
+      </div>
+
+      <div class="mb-2">
+        <div class="fw-bold text-success">Category</div>
+        <div>${category}</div>
+      </div>
+
+      <div class="mb-2">
+        <div class="fw-bold text-success">Details of Request</div>
+        <div>${safe(requestDetails)}</div>
+      </div>
+
+      ${requestDetailsOther ? `
+        <div class="mb-2">
+          <div class="fw-bold text-success">Details of Request (Other Category)</div>
+          <div>${safe(requestDetailsOther)}</div>
+        </div>
+      ` : ""}
+
+      ${teacherAndContact && teacherAndContact !== "—" ? `
+      <div class="mb-2">
+        <div class="fw-bold text-success">Teacher and Contact</div>
+        <div>${teacherAndContact}</div>
+      </div>
+    ` : ""}
+
+      <div class="mb-2">
+        <div class="fw-bold text-success">Amount Requested</div>
+        <div>${amountRequested}</div>
+      </div>
+
+      ${isApprovedOrReleased ? `
+        <hr class="my-3" />
+        <div class="fw-bold text-success mb-2">Approved / Released Info</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="fw-bold text-success">EDM Share</div>
+            <div>${edmShare}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Amount to be Released</div>
+            <div>${amountReceived}</div>
+          </div>
+        </div>
+      ` : ""}
+
+     ${remarks ? `
+        <hr class="my-3" />
+        <div class="alert alert-danger mb-0">
+          <div class="fw-bold">Remarks</div>
+          <div>${remarks}</div>
+        </div>
+      ` : ""}
+
+      ${statusUpper === "REJECTED REQUEST" ? `
+        <hr class="my-3" />
+        <div class="text-center">
+          <button class="btn btn-success px-4 text-dark" id="btn-request-again">
+            Request Again
+          </button>
+        </div>
+      ` : ""}
+
+      ${statusUpper === "RELEASED REQUEST" && !tx._linkedLiq ? `
+        <hr class="my-3" />
+        <div class="text-center">
+          <button class="btn btn-success px-4 text-white fw-bold" id="btn-liquidate-request">
+
+            LIQUIDATE REQUEST
+          </button>
+        </div>
+      ` : statusUpper === "LIQUIDATED" ? `
+        <hr class="my-3" />
+        <div class="text-center">
+          <span class="badge bg-primary px-4 py-2 fs-6">✓ Already Liquidated</span>
+        </div>
+      ` : ""}
+    </div>
+  `;
+
+  // ── LIQUIDATION BOX (fetch and show if exists) ──
+  let linkedLiq = null;
+  let alreadyFiled = false;
+
+  try {
+    const allSnap = await getDocs(collection(db, "users", currentUser.id, "transactions"));
+    allSnap.forEach(d => {
+      const liq = d.data();
+      if (liq.type === "LIQUIDATION" && liq.requestId === tx.id) {
+        // Always keep the most recent liquidation
+        const existingTime = linkedLiq?.createdAt?.toDate?.() || new Date(0);
+        const newTime = liq.createdAt?.toDate?.() || new Date(0);
+        if (!linkedLiq || newTime > existingTime) {
+          linkedLiq = { ...liq, id: d.id };
+        }
+      }
+    });
+    // alreadyFiled = true only if latest liq is NOT rejected
+    if (linkedLiq && linkedLiq.status !== "REJECTED LIQUIDATION") {
+      alreadyFiled = true;
+    }
+  } catch (err) {
+    console.error("Failed to fetch linked liquidation:", err);
+  }
+
+  if (linkedLiq) {
+    const liqStatus = safe(linkedLiq.status);
+    const liqStatusUpper = liqStatus.toUpperCase();
+    const liqBadgeClass =
+      liqStatusUpper.includes("REJECT") ? "bg-danger" :
+      liqStatusUpper.includes("PENDING") ? "bg-warning text-dark" :
+      liqStatusUpper.includes("APPROVED") ? "bg-success" :
+      "bg-secondary";
+
+    const particulars = Array.isArray(linkedLiq.details?.particulars)
+      ? linkedLiq.details.particulars : [];
+
+    const particularsRows = particulars.length > 0
+      ? particulars.map((p, idx) => `
+          <tr>
+            <td class="text-center">${idx + 1}</td>
+            <td>${safe(p.description)}</td>
+            <td class="text-center">${safe(p.orNumber)}</td>
+            <td class="text-end">${peso(p.amount)}</td>
+          </tr>
+        `).join("")
+      : `<tr><td colspan="4" class="text-center text-muted">No particulars recorded.</td></tr>`;
+
+    const particularsTotal = particulars.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+    const liqRemarks = (
+      linkedLiq?.review?.remarks ?? linkedLiq?.remarks ?? ""
+    ).toString().trim();
+
+    const liqDateStr = linkedLiq?.createdAt?.toDate
+      ? linkedLiq.createdAt.toDate().toLocaleString()
+      : "—";
+
+    html += `
+      <div class="p-3 bg-white border border-success rounded mb-3">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <div class="fw-bold text-success fs-5">Liquidation Details</div>
+            <div class="text-muted small">${liqDateStr}</div>
+          </div>
+          <span class="badge ${liqBadgeClass} px-3 py-2">${liqStatus}</span>
+        </div>
+
+        <hr class="my-3" />
+
+        <div class="mb-2">
+          <div class="fw-bold text-success">Category</div>
+          <div>${linkedLiq.details?.categories?.[0] || linkedLiq.details?.otherCategory || "—"}</div>
+        </div>
+
+        <div class="row g-3 mb-2">
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Amount Received</div>
+            <div>${peso(linkedLiq.details?.received || 0)}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="fw-bold text-success">EDM Share</div>
+            <div>${peso(linkedLiq.details?.share || 0)}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Excess / Refund</div>
+            <div>${peso(linkedLiq.details?.excessRefund || 0)}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Total Amount</div>
+            <div>${peso(linkedLiq.amount || 0)}</div>
+          </div>
+        </div>
+
+        <hr class="my-3" />
+
+        <div class="fw-bold text-success mb-2">Breakdown of Expenses</div>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead class="table-success text-center">
+              <tr>
+                <th style="width:60px;">#</th>
+                <th>Particulars</th>
+                <th style="width:180px;">OR Sequence No.</th>
+                <th style="width:160px;">Amount (₱)</th>
+              </tr>
+            </thead>
+            <tbody>${particularsRows}</tbody>
+            <tfoot>
+              <tr class="table-light">
+                <th colspan="3" class="text-end">TOTAL</th>
+                <th class="text-end">₱${particularsTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        ${liqRemarks ? `
+          <hr class="my-3" />
+          <div class="alert alert-danger mb-0">
+            <div class="fw-bold">Remarks</div>
+            <div>${liqRemarks}</div>
+          </div>
+        ` : ""}
+
+        ${liqStatusUpper === "REJECTED LIQUIDATION" ? `
+          <hr class="my-3" />
+          <div class="text-center">
+            <button class="btn btn-success px-4 text-white fw-bold" id="btn-liquidate-again">
+              Liquidate again!
+            </button>
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }
+
+  body.innerHTML = html;
+
+  const detailsModal = new bootstrap.Modal(document.getElementById("detailsModal"));
+  detailsModal.show();
+
+  // LIQUIDATE REQUEST button
+  const liquidateBtn = document.getElementById("btn-liquidate-request");
+  if (liquidateBtn) {
+    liquidateBtn.addEventListener("click", () => {
+      detailsModal.hide();
+      showTab("liquidation");
+      prefillLiquidationForm(tx);
+      window._liquidatingRequestId = tx.id;
+    });
+  }
+
+// LIQUIDATE AGAIN button
+const liquidateAgainBtn = document.getElementById("btn-liquidate-again");
+  if (liquidateAgainBtn) {
+    liquidateAgainBtn.addEventListener("click", () => {
+      detailsModal.hide();
+      showTab("liquidation");
+      prefillLiquidationForm(tx);
+      window._liquidatingRequestId = tx.id;
+      console.log("Liquidating again for requestId:", window._liquidatingRequestId);
+    });
+  }
+
+// REQUEST AGAIN button
+const requestAgainBtn = document.getElementById("btn-request-again");
+  if (requestAgainBtn) {
+    requestAgainBtn.addEventListener("click", () => {
+      detailsModal.hide();
+      showTab("request");
+
+      // Store the existing request ID so submitRequest updates instead of creates
+      _editingRequestId = tx.id;
+
+      // Prefill request form with previous data
+      document.getElementById("student-name").value = tx.details?.studentName || currentUser.name || "";
+      document.getElementById("university").value = tx.details?.university || currentUser.university || "";
+      document.getElementById("teacher-info").value = tx.details?.teacherName || "";
+      document.getElementById("details").value = tx.details?.details || "";
+      document.getElementById("amount-requested").value = tx.amount || "";
+
+      // Prefill checkboxes
+      const allCheckboxes = document.querySelectorAll("#request .single-category");
+      allCheckboxes.forEach(cb => {
+        cb.checked = tx.details?.categories?.includes(cb.value) || false;
+        cb.disabled = false;
+      });
+
+      const checkedOne = Array.from(allCheckboxes).find(cb => cb.checked);
+      if (checkedOne) {
+        allCheckboxes.forEach(cb => {
+          if (cb !== checkedOne) cb.disabled = true;
+        });
+      }
+
+      document.getElementById("other-category").value = tx.details?.otherCategory || "";
+    });
+  }
+};
+    function prefillLiquidationForm(tx) {
+      if (!tx || !tx.details) return;
+
+      document.getElementById("student-name").value = tx.details.studentName || "";
+      document.getElementById("university").value = tx.details.university || "";
+      document.getElementById("teacher-info").value = tx.details.teacherName || "";
+      document.getElementById("details-nature").value = tx.details.detailsNature || tx.details.details || "";
+      document.getElementById("details-other").value = tx.details.detailsOther || "";
+      document.getElementById("amount-requested").value = tx.amount || "";
+
+      const allCheckboxes = document.querySelectorAll("#liquidation .liquidation-category");
+      allCheckboxes.forEach(cb => {
+        cb.checked = tx.details.categories?.includes(cb.value) || false;
+      });
+      document.getElementById("other-category").value = tx.details.otherCategory || "";
+    }
+
+  function goToLiquidation(txId) {
+    const detailsModal = bootstrap.Modal.getInstance(document.getElementById("detailsModal"));
+    detailsModal.hide();
+
+    showTab("liquidation");
+
+    const requestDocRef = doc(db, "users", currentUser.id, "transactions", txId);
+    getDoc(requestDocRef).then(docSnap => {
+      if (docSnap.exists()) {
+        const requestData = docSnap.data();
+
+        // Pre-fill liquidation form
+        document.getElementById("student-name").value = requestData.details.studentName;
+        document.getElementById("university").value = requestData.details.university;
+        document.getElementById("teacher-info").value = requestData.details.teacherName;
+        document.getElementById("details").value = requestData.details.details;
+        document.getElementById("amount-requested").value = requestData.amount;
+
+        // Fill categories checkboxes
+        const allCheckboxes = document.querySelectorAll("#liquidation .liquidation-category");
+        allCheckboxes.forEach(cb => {
+          cb.checked = requestData.details.categories?.includes(cb.value) || false;
+        });
+
+        // Other category
+        document.getElementById("other-category").value = requestData.details.otherCategory || "";
+      }
+    });
+  }
+
+  window.submitRequest = async function () {
+  try {
+    const date = document.getElementById('request-date').value;
+    const amount = document.getElementById('amount-requested').value;
+    const categories = getCheckedValues();
+
+    if (!date || !amount) {
+      alert("Date and amount are required.");
+      return;
+    }
+
+    const deanLister = document.querySelector('input[name="dean-lister"]:checked');
+    if (!deanLister) {
+      alert("Please select Dean's Lister (Yes or No).");
+      return;
+    }
+
+    if (categories.length !== 1) {
+      alert("Please select exactly ONE category.");
+      return;
+    }
+
+    const details = {
+      university: document.getElementById('university').value,
+      teacherName: document.getElementById('teacher-info').value,
+      details: document.getElementById('details-nature').value || document.getElementById('details-other').value,
+      detailsNature: document.getElementById('details-nature').value,
+      detailsOther: document.getElementById('details-other').value,
+      categories,
+      otherCategory: document.getElementById('other-category').value || "",
+      deanLister: document.getElementById('dean-yes').checked ? "Yes" : "No"
+    };
+
+    if (_editingRequestId) {
+      // UPDATE existing rejected request
+      const docRef = doc(db, "users", currentUser.id, "transactions", _editingRequestId);
+      await updateDoc(docRef, {
+        date,
+        amount: Number(amount),
+        status: "PENDING REQUEST",
+        review: null,
+        updatedAt: serverTimestamp(),
+        details
+      });
+      _editingRequestId = null;
+      alert("Request resubmitted successfully!");
+    } else {
+      // CREATE new request
+      await addDoc(
+        collection(db, "users", currentUser.id, "transactions"),
+        {
+          userId: currentUser.id,
+          userName: currentUser.name,
+          type: "REQUEST",
+          date,
+          amount: Number(amount),
+          status: "PENDING REQUEST",
+          createdAt: serverTimestamp(),
+          details
+        }
+      );
+      alert("Request submitted successfully!");
+    }
+
+    showTab("history");
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to submit request.");
+  }
+};
+
+    function getParticulars() {
+      const rows = document.querySelectorAll("#particulars-body tr");
+      const particulars = [];
+
+      rows.forEach(row => {
+        const inputs = row.querySelectorAll("input");
+
+        const description = inputs[0].value.trim();
+        const orNumber = inputs[1].value.trim();
+        const amount = Number(inputs[2].value);
+
+        // Skip empty rows
+        if (!description && !orNumber && !amount) return;
+
+        particulars.push({
+          description,
+          orNumber,
+          amount
+        });
+      });
+
+      return particulars;
+    }
+
+
+    window.submitLiquidation = async function () {
+      try {
+        const date = document.getElementById("liquidation-date").value;
+        const amount = document.getElementById("total-requested").value;
+
+        const categories = getLiquidationCategories();
+        const particulars = getParticulars();
+
+        if (!date || !amount) {
+          alert("Date and total amount are required.");
+          return;
+        }
+
+        const liqDeanLister = document.querySelector('#liquidation input[name="dean-lister"]:checked');
+        if (!liqDeanLister) {
+          alert("Please select Dean's Lister (Yes or No).");
+          return;
+        }
+
+        if (categories.length !== 1) {
+          alert("Please select exactly ONE category.");
+          return;
+        }
+
+        if (particulars.length === 0) {
+          alert("Please add at least one expense breakdown.");
+          return;
+        }
+
+        const data = {
+          userId: currentUser.id,
+          userName: currentUser.name,
+          type: "LIQUIDATION",
+          date,
+          amount: Number(amount),
+          status: "PENDING LIQUIDATION",
+          createdAt: serverTimestamp(),
+          requestId: window._liquidatingRequestId || null, 
+
+          details: {
+            university: document.getElementById("university").value,
+            received: Number(document.getElementById("amount-received")?.value || 0),
+            share: Number(document.getElementById("liq-share")?.value || 0),
+            excessRefund: Number(document.getElementById("iuli-kuwang")?.value || 0),
+            otherCategory: document.getElementById("liq-other-category").value || "",
+            deanLister: document.getElementById("liq-dean-yes").checked ? "Yes" : "No",
+
+            categories,
+            particulars,
+            totalComputed: particulars.reduce((sum, p) => sum + p.amount, 0)
+          }
+        };
+
+        await addDoc(
+          collection(db, "users", currentUser.id, "transactions"),
+          data
+        );
+        window._liquidatingRequestId = null;  
+
+        alert("Liquidation submitted successfully!");
+        showTab("history");
+
+      } catch (err) {
+        console.error("SUBMIT ERROR:", err);
+        alert(err.message);
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const checkboxes = document.querySelectorAll(".single-category");
+
+      checkboxes.forEach(cb => {
+        cb.addEventListener("change", () => {
+          if (cb.checked) {
+            // Disable all others
+            checkboxes.forEach(other => {
+              if (other !== cb) {
+                other.disabled = true;
+              }
+            });
+          } else {
+            // Re-enable all when unchecked
+            checkboxes.forEach(other => {
+              other.disabled = false;
+            });
+          }
+        });
+      });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const checkboxes = document.querySelectorAll(".liquidation-category");
+
+      checkboxes.forEach(cb => {
+        cb.addEventListener("change", () => {
+          if (cb.checked) {
+            // Disable all others
+            checkboxes.forEach(other => {
+              if (other !== cb) {
+                other.disabled = true;
+              }
+            });
+          } else {
+            // Re-enable all when unchecked
+            checkboxes.forEach(other => {
+              other.disabled = false;
+            });
+          }
+        });
+      });
+    });
+
+    function getCheckedValues() {
+      const checked = document.querySelectorAll(".single-category:checked");
+      return Array.from(checked).map(cb => cb.value);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const today = new Date();
+        const formattedDate = today.getFullYear() + '-' +
+                              String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                              String(today.getDate()).padStart(2, '0');
+
+        const requestDate = document.getElementById("request-date");
+        const liquidationDate = document.getElementById("liquidation-date");
+        const historyDate = document.getElementById("history-date");
+
+        if(requestDate) requestDate.value = formattedDate;
+        if(liquidationDate) liquidationDate.value = formattedDate;
+        if(historyDate) historyDate.value = formattedDate;
+    });
+
+
+    function getLiquidationCategories() {
+    return Array.from(
+      document.querySelectorAll(".liquidation-category:checked")
+    ).map(cb => cb.value);
+  }
+
+      
+  window.showTab = function (tabName) {
+      const tabs = ['request', 'liquidation', 'history'];
+
+      tabs.forEach(tab => {
+        document.getElementById(tab).style.display =
+          (tab === tabName) ? 'block' : 'none';
+
+        document
+          .getElementById('tab-' + tab)
+          .classList.toggle('active', tab === tabName);
+      });
+      if (tabName === "history") {
+        loadHistory();
+      }
+    };
+
+    window.logout = function () {
+      const modal = new bootstrap.Modal(document.getElementById("logoutModal"));
+      modal.show();
+    };
+
+    window.confirmLogout = function () {
+      sessionStorage.clear();
+      window.location.href = "index.html";
+    };
+  </script>
+<script>
+  (function () {
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark-mode");
+    }
+  })();
+
+  window.toggleDarkMode = function () {
+    const isDark = document.body.classList.toggle("dark-mode");
+    localStorage.setItem("darkMode", isDark);
+    updateDarkModeUI(isDark);
+  };
+
+  function updateDarkModeUI(isDark) {
+    const icon = document.getElementById("dark-mode-icon");
+    const label = document.getElementById("dark-mode-label");
+    if (icon) icon.className = isDark ? "bi bi-sun-fill" : "bi bi-moon-stars-fill";
+    if (label) label.textContent = isDark ? "Light Mode" : "Dark Mode";
+
+    document.querySelectorAll(".logo-default").forEach(el => {
+      el.style.display = isDark ? "none" : "block";
+    });
+    document.querySelectorAll(".logo-dark").forEach(el => {
+      el.style.display = isDark ? "block" : "none";
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const isDark = localStorage.getItem("darkMode") === "true";
+    updateDarkModeUI(isDark);
+  });
+</script>
+</body>
+</html>

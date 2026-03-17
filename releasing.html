@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>House Parent Dashboard</title>
+  <link rel="icon" type="jpg" href="favicon.jpg">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="darkmode.css">
+
+  <style>
+    body {
+      background-color: #f0f8f5;
+      margin: 0;
+    }
+  
+    .dashboard {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 130px;
+      background-color: #155724;
+      color: white;
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 0px;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .sidebar button {
+      background: none;
+      border: none;
+      color: #ffffff;
+      text-align: left;
+      padding: 0px 5px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+  
+    .sidebar button.active {
+      background-color: #546959;
+      font-weight: bold;
+      width: 135px;
+    }
+  
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+  
+    .content-area {
+      flex: 1;
+    }
+  
+    .tab-content {
+      display: none;
+    }
+  
+    .tab-content.active {
+      display: block;
+    }
+  
+    .page-footer {
+      margin-top: auto;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-success">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Confirm Logout</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to logout?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" onclick="confirmLogout()">Yes, Logout</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Layout -->
+<div class="dashboard">
+  <div class="sidebar d-flex flex-column" style="padding: 1rem 0;">
+    <div class="d-flex flex-column align-items-center">
+      <button class="nav-btn active d-flex flex-column align-items-center mb-0" onclick="showTab('app-req', this)">
+        <i class="bi bi-hourglass-split" style="font-size: 30px;"></i>
+        <small>Approved Requests</small>
+      </button>
+      <button class="nav-btn d-flex flex-column align-items-center mb-0" onclick="showTab('real-req', this)">
+        <i class="bi bi-wallet2" style="font-size: 30px;"></i>
+        <small>Released Requests</small>
+      </button>
+    </div>
+    <div class="mt-auto d-flex flex-column align-items-center">
+      <button class="nav-btn dark-mode-toggle d-flex flex-column align-items-center mb-2" onclick="toggleDarkMode()">
+        <i class="bi bi-moon-stars-fill" style="font-size: 30px;" id="dark-mode-icon"></i>
+        <small id="dark-mode-label">Dark Mode</small>
+      </button>
+      <button class="nav-btn d-flex flex-column align-items-center mb-3" onclick="logout()">
+        <i class="bi bi-box-arrow-right" style="font-size: 30px;"></i>
+        <small>Logout</small>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content (Right) -->
+  <div class="main-content">
+     <!-- Page Header -->
+  <div class="page-header d-flex align-items-center justify-content-between mb-3">
+    <!-- Logo on the left -->
+    <div class="header-logo">
+      <img src="logo.png"       alt="Logo" class="logo-default" style="height: 40px; width: auto;">
+      <img src="logo-light.png" alt="Logo" class="logo-dark"    style="height: 40px; width: auto;">
+    </div>
+    <!-- Page Title + Date on the right -->
+    <div class="header-text text-end">
+      <div id="page-title" class="fw-bold fs-6 text-success">Approved Requests</div>
+      <div id="page-date" class="text-muted fs-9">
+      </div>
+    </div>
+  </div>
+  <!-- Underline -->
+  <hr class="header-underline">
+  <div id="app-req" class="tab-content active">
+    <h6 class="fw-bold text-success mb-3">Approved Requests</h6>
+  
+    <div class="row mb-3 align-items-center g-2">
+      <div class="col-md-4">
+        <select id="app-req-category-filter" class="form-select">
+          <option value="ALL">All Categories</option>
+          <optgroup label="School Categories">
+            <option value="Board Exam Fees &amp; Expenses">Board Exam Fees &amp; Expenses</option>
+            <option value="Graduation Expense">Graduation Expense</option>
+            <option value="OJT Expenses">OJT Expenses</option>
+            <option value="School Projects">School Projects</option>
+            <option value="Transportation">Transportation</option>
+            <option value="School Uniforms">School Uniforms</option>
+            <option value="School Research/Thesis">School Research/Thesis</option>
+            <option value="Books and Modules">Books and Modules</option>
+            <option value="Seminar/Educational Field Trips">Seminar/Educational Field Trips</option>
+            <option value="Internet/Phone/Post">Internet/Phone/Post</option>
+          </optgroup>
+          <optgroup label="Other Categories">
+            <option value="Social Follow-Up/Mission">Social Follow-Up/Mission</option>
+            <option value="Center Activities">Center Activities</option>
+            <option value="Festivities">Festivities</option>
+            <option value="Seminars/Modular Sessions">Seminars/Modular Sessions</option>
+            <option value="Repairs and Maintenance">Repairs and Maintenance</option>
+            <option value="House Rental">House Rental</option>
+            <option value="Utilities: Water/Electricity">Utilities: Water/Electricity</option>
+            <option value="Food Budget">Food Budget</option>
+            <option value="Drinkable Water">Drinkable Water</option>
+            <option value="Hygiene/Cleaning Materials">Hygiene/Cleaning Materials</option>
+            <option value="IT/House Equipment">IT/House Equipment</option>
+            <option value="Gas and Firewood">Gas and Firewood</option>
+            <option value="Office Internet/Phone">Office Internet/Phone</option>
+            <option value="Health Expenses">Health Expenses</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="col-md-8">
+        <input type="text" id="app-req-search" class="form-control"
+               placeholder="Search name, category, amount, or date...">
+      </div>
+    </div>
+  
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-success">
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="app-req-body"></tbody>
+      </table>
+    </div>
+  
+    <div id="app-req-empty" class="text-center text-muted py-4 d-none">
+      No approved requests found.
+    </div>
+  </div>
+  
+  <div id="real-req" class="tab-content">
+    <h6 class="fw-bold text-success mb-3">Released Requests</h6>
+  
+    <div class="row mb-3 align-items-center g-2">
+      <div class="col-md-4">
+        <select id="real-req-category-filter" class="form-select">
+          <option value="ALL">All Categories</option>
+          <optgroup label="School Categories">
+            <option value="Board Exam Fees &amp; Expenses">Board Exam Fees &amp; Expenses</option>
+            <option value="Graduation Expense">Graduation Expense</option>
+            <option value="OJT Expenses">OJT Expenses</option>
+            <option value="School Projects">School Projects</option>
+            <option value="Transportation">Transportation</option>
+            <option value="School Uniforms">School Uniforms</option>
+            <option value="School Research/Thesis">School Research/Thesis</option>
+            <option value="Books and Modules">Books and Modules</option>
+            <option value="Seminar/Educational Field Trips">Seminar/Educational Field Trips</option>
+            <option value="Internet/Phone/Post">Internet/Phone/Post</option>
+          </optgroup>
+          <optgroup label="Other Categories">
+            <option value="Social Follow-Up/Mission">Social Follow-Up/Mission</option>
+            <option value="Center Activities">Center Activities</option>
+            <option value="Festivities">Festivities</option>
+            <option value="Seminars/Modular Sessions">Seminars/Modular Sessions</option>
+            <option value="Repairs and Maintenance">Repairs and Maintenance</option>
+            <option value="House Rental">House Rental</option>
+            <option value="Utilities: Water/Electricity">Utilities: Water/Electricity</option>
+            <option value="Food Budget">Food Budget</option>
+            <option value="Drinkable Water">Drinkable Water</option>
+            <option value="Hygiene/Cleaning Materials">Hygiene/Cleaning Materials</option>
+            <option value="IT/House Equipment">IT/House Equipment</option>
+            <option value="Gas and Firewood">Gas and Firewood</option>
+            <option value="Office Internet/Phone">Office Internet/Phone</option>
+            <option value="Health Expenses">Health Expenses</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="col-md-8">
+        <input type="text" id="real-req-search" class="form-control"
+               placeholder="Search name, category, amount, or date...">
+      </div>
+    </div>
+  
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-success">
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="real-req-body"></tbody>
+      </table>
+    </div>
+  
+    <div id="real-req-empty" class="text-center text-muted py-4 d-none">
+      No released requests found.
+    </div>
+  </div>
+
+
+  <!-- Release Details Modal -->
+  <div class="modal fade" id="releaseDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-success">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">Approved Request Details</h5>
+          <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div id="releaseDetailsBody"></div>
+
+          <hr>
+
+          <label id="release-remarks-label" class="form-label fw-bold text-success">
+            Remarks
+          </label>
+          <textarea id="release-remarks-input" class="form-control" rows="3" placeholder="Type remarks here..."></textarea>
+
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-outline-danger" id="btn-dont-release">DON’T RELEASE</button>
+            <button class="btn btn-success text-white" id="btn-release">RELEASE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+   <!-- FOOTER INSIDE MAIN CONTENT -->
+   <footer class="page-footer">
+    <div class="border-top py-1">
+      <div class="container-fluid px-0">
+        <div class="row text-center align-items-center">
+
+          <div class="col-md-4 text-md-start">
+            <span class="text-muted">University of Cebu - Main Campus</span>
+          </div>
+
+          <div class="col-md-4">
+            <span class="text-muted">System Developer:</span>
+            <span class="text-muted">Catherine Jane B. Barro</span>
+          </div>
+
+          <div class="col-md-4 text-md-end">
+            <span class="text-muted">Department of Computer Engineering</span>
+          </div>
+
+        </div>
+
+        <div class="text-center mt-2 fw-semibold text-success">
+          © <span id="year"></span> All Rights Reserved.
+        </div>
+      </div>
+    </div>
+  </footer>
+  </div>
+</div>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+  import {
+    getFirestore,
+    collectionGroup,
+    getDocs,
+    query,
+    where,
+    orderBy,
+    updateDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCNRUruPe1hAgGK1eJAGsGTnwIEcI7Oirs",
+    authDomain: "edm-transac.firebaseapp.com",
+    projectId: "edm-transac",
+    storageBucket: "edm-transac.firebasestorage.app",
+    messagingSenderId: "722463634080",
+    appId: "1:722463634080:web:15f9f12fea55e2283f0fc5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ---- Header Date ----
+  function setHeaderDate() {
+    const today = new Date();
+    const options = { year: "numeric", month: "numeric", day: "numeric" };
+    document.getElementById("page-date").textContent =
+      today.toLocaleDateString(undefined, options);
+  }
+
+  // ---- Load Approved Requests  ----
+  let _appReqRows = [];
+
+  async function loadApprovedRequests() {
+    const tbody = document.getElementById("app-req-body");
+    const empty = document.getElementById("app-req-empty");
+
+    tbody.innerHTML = "";
+    empty.classList.add("d-none");
+    _appReqRows = [];
+
+    try {
+      const q = query(
+        collectionGroup(db, "transactions"),
+        where("type", "==", "REQUEST"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      snap.forEach(docSnap => {
+        const tx = docSnap.data();
+        if (tx.status !== "APPROVED REQUEST") return;
+
+        const name = tx.userName || "—";
+        const category = tx.details?.categories?.[0] || tx.details?.otherCategory || "—";
+        const amount = Number(tx.amount || 0);
+        const amountStr = `₱${amount.toLocaleString()}`;
+        const date = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : (tx.date || "—");
+        const status = tx.status || "—";
+
+        _appReqRows.push({ tx, docRef: docSnap.ref, name, category, amountStr, date, status });
+      });
+
+      renderAppReqRows();
+
+      document.getElementById("app-req-category-filter").onchange = renderAppReqRows;
+      document.getElementById("app-req-search").oninput = renderAppReqRows;
+
+    } catch (err) {
+      console.error(err);
+      empty.classList.remove("d-none");
+      empty.textContent = "ERROR: " + err.message;
+    }
+  }
+
+  function renderAppReqRows() {
+    const tbody = document.getElementById("app-req-body");
+    const empty = document.getElementById("app-req-empty");
+    const filterVal = document.getElementById("app-req-category-filter")?.value || "ALL";
+    const searchVal = (document.getElementById("app-req-search")?.value || "").toLowerCase();
+
+    tbody.innerHTML = "";
+
+    const filtered = _appReqRows.filter(r => {
+      const matchCategory = filterVal === "ALL" || r.category === filterVal;
+      const matchSearch =
+        !searchVal ||
+        r.name.toLowerCase().includes(searchVal) ||
+        r.category.toLowerCase().includes(searchVal) ||
+        r.amountStr.toLowerCase().includes(searchVal) ||
+        r.date.toLowerCase().includes(searchVal) ||
+        r.status.toLowerCase().includes(searchVal);
+      return matchCategory && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      empty.classList.remove("d-none");
+      empty.textContent = "No approved requests found.";
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    filtered.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${r.name}</td>
+        <td>${r.category}</td>
+        <td>${r.amountStr}</td>
+        <td>${r.date}</td>
+        <td>${r.status}</td>
+      `;
+      tr.onclick = () => showReleaseDetails(r.tx, r.docRef);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---- Load Released Requests (status = RELEASED REQUEST) ----
+  let _realReqRows = [];
+
+  async function loadReleasedRequests() {
+    const tbody = document.getElementById("real-req-body");
+    const empty = document.getElementById("real-req-empty");
+
+    tbody.innerHTML = "";
+    empty.classList.add("d-none");
+    _realReqRows = [];
+
+    try {
+      const q = query(
+        collectionGroup(db, "transactions"),
+        where("type", "==", "REQUEST"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      snap.forEach(docSnap => {
+        const tx = docSnap.data();
+        if (tx.status !== "RELEASED REQUEST") return;
+
+        const name = tx.userName || "—";
+        const category = tx.details?.categories?.[0] || tx.details?.otherCategory || "—";
+        const amount = Number(tx.amount || 0);
+        const amountStr = `₱${amount.toLocaleString()}`;
+        const date = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString() : (tx.date || "—");
+        const status = tx.status || "—";
+
+        _realReqRows.push({ tx, docRef: docSnap.ref, name, category, amountStr, date, status });
+      });
+
+      renderRealReqRows();
+
+      document.getElementById("real-req-category-filter").onchange = renderRealReqRows;
+      document.getElementById("real-req-search").oninput = renderRealReqRows;
+
+    } catch (err) {
+      console.error(err);
+      empty.classList.remove("d-none");
+      empty.textContent = "ERROR: " + err.message;
+    }
+  }
+
+  function renderRealReqRows() {
+    const tbody = document.getElementById("real-req-body");
+    const empty = document.getElementById("real-req-empty");
+    const filterVal = document.getElementById("real-req-category-filter")?.value || "ALL";
+    const searchVal = (document.getElementById("real-req-search")?.value || "").toLowerCase();
+
+    tbody.innerHTML = "";
+
+    const filtered = _realReqRows.filter(r => {
+      const matchCategory = filterVal === "ALL" || r.category === filterVal;
+      const matchSearch =
+        !searchVal ||
+        r.name.toLowerCase().includes(searchVal) ||
+        r.category.toLowerCase().includes(searchVal) ||
+        r.amountStr.toLowerCase().includes(searchVal) ||
+        r.date.toLowerCase().includes(searchVal) ||
+        r.status.toLowerCase().includes(searchVal);
+      return matchCategory && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      empty.classList.remove("d-none");
+      empty.textContent = "No released requests found.";
+      return;
+    }
+
+    empty.classList.add("d-none");
+
+    filtered.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.style.cursor = "pointer";
+      tr.innerHTML = `
+        <td>${r.name}</td>
+        <td>${r.category}</td>
+        <td>${r.amountStr}</td>
+        <td>${r.date}</td>
+        <td>${r.status}</td>
+      `;
+      tr.onclick = () => showReleaseDetails(r.tx, r.docRef, true);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---- Modal Renderer (Approved / Released detail view) ----
+  function showReleaseDetails(tx, docRef, viewOnly = false) {
+  const body = document.getElementById("releaseDetailsBody");
+  const remarksInput = document.getElementById("release-remarks-input");
+  const remarksLabel = document.getElementById("release-remarks-label");
+  const btnRelease = document.getElementById("btn-release");
+  const btnDont = document.getElementById("btn-dont-release");
+
+  // reset
+  remarksInput.value = "";
+  remarksInput.style.display = viewOnly ? "none" : "";
+  remarksLabel.style.display = viewOnly ? "none" : "";
+  btnRelease.style.display = viewOnly ? "none" : "";
+  btnDont.style.display = viewOnly ? "none" : "";
+
+  const safe = (v) =>
+    v === undefined || v === null || String(v).trim() === "" ? "—" : v;
+
+  const peso = (v) => `₱${Number(v || 0).toLocaleString()}`;
+
+  const status = safe(tx?.status);
+  const statusUpper = String(status).toUpperCase();
+
+  const badgeClass =
+    statusUpper.includes("REJECT") || statusUpper.includes("NOT RELEASE")
+      ? "bg-danger"
+      : statusUpper.includes("PENDING") || statusUpper.includes("SUBMITTED")
+        ? "bg-warning text-dark"
+        : statusUpper.includes("APPROVED") || statusUpper.includes("RELEASED")
+          ? "bg-success"
+          : "bg-secondary";
+
+  const dateStr = tx?.createdAt?.toDate
+    ? tx.createdAt.toDate().toLocaleString()
+    : (tx?.date || "—");
+
+  const name = safe(tx?.userName);
+  const deanLister = safe(tx?.details?.deanLister);
+  const university = safe(tx?.details?.university);
+  const category = tx?.details?.categories?.[0] || tx?.details?.otherCategory || "—";
+  const amountRequested = tx?.amount !== undefined ? peso(tx.amount) : "—";
+  const requestDetails = tx?.details?.details ?? tx?.details?.requestDetails ?? "";
+  const teacherName = safe(tx?.details?.teacherName);
+
+  const existingEdmShare = tx?.review?.edmShare ?? tx?.review?.share ?? tx?.details?.share ?? "";
+  const existingTotalToRelease =
+    tx?.review?.amountToRelease ?? tx?.review?.totalToRelease ?? tx?.review?.amountReleased ?? "";
+  const existingRemarks = (tx?.review?.remarks ?? tx?.remarks ?? tx?.remark ?? "").toString().trim();
+
+  body.innerHTML = `
+    <div class="p-3 bg-white border border-success rounded">
+
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <div class="fw-bold text-success fs-5">Transaction Details</div>
+          <div class="text-muted small">${dateStr}</div>
+        </div>
+        <span class="badge ${badgeClass} px-3 py-2">${status}</span>
+      </div>
+
+      <hr class="my-3" />
+
+      <div class="row mb-2">
+        <div class="col-md-6">
+          <div class="fw-bold text-success">Name</div>
+          <div>${name}</div>
+        </div>
+        <div class="col-md-6">
+          <div class="fw-bold text-success">Dean's List</div>
+          <div>${deanLister}</div>
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <div class="fw-bold text-success">University</div>
+        <div>${university}</div>
+      </div>
+
+      <div class="mb-2">
+        <div class="fw-bold text-success">Category</div>
+        <div>${category}</div>
+      </div>
+
+      <div class="mb-2">
+        <div class="fw-bold text-success">Amount Requested</div>
+        <div>${amountRequested}</div>
+      </div>
+
+      <div class="mb-2">
+        <div class="fw-bold text-success">Request Details</div>
+        <div>${safe(requestDetails)}</div>
+      </div>
+
+      ${teacherName && teacherName !== "—" ? `
+        <div class="mb-2">
+          <div class="fw-bold text-success">Teacher and Contact Number</div>
+          <div>${teacherName}</div>
+        </div>
+      ` : ""}
+
+      <hr class="my-3" />
+
+      <div class="fw-bold text-success mb-2">Center SDO Validation</div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="fw-bold text-success">EDM Share</div>
+          <div>${existingEdmShare === "" ? "—" : `₱${Number(existingEdmShare).toLocaleString()}`}</div>
+        </div>
+        <div class="col-md-6">
+          <div class="fw-bold text-success">Total Amount to be Released</div>
+          <div>${existingTotalToRelease === "" ? "—" : `₱${Number(existingTotalToRelease).toLocaleString()}`}</div>
+        </div>
+      </div>
+
+      ${existingRemarks ? `
+        <div class="mt-3">
+          <div class="fw-bold text-success">Remarks</div>
+          <div>${existingRemarks}</div>
+        </div>
+      ` : ""}
+
+      ${tx?.releaseReview?.action ? `
+        <hr class="my-3" />
+        <div class="fw-bold text-success mb-2">Release Review</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="fw-bold text-success">Action</div>
+            <div>${tx.releaseReview.action}</div>
+          </div>
+          ${tx.releaseReview.remarks ? `
+            <div class="col-md-6">
+              <div class="fw-bold text-success">Remarks</div>
+              <div>${tx.releaseReview.remarks}</div>
+            </div>
+          ` : ""}
+        </div>
+      ` : ""}
+
+    </div>
+  `;
+
+  const modal = new bootstrap.Modal(document.getElementById("releaseDetailsModal"));
+  modal.show();
+
+  btnRelease.onclick = null;
+  btnDont.onclick = null;
+
+  if (viewOnly) return;
+
+  btnRelease.onclick = async () => {
+    try {
+      await updateDoc(docRef, {
+        status: "RELEASED REQUEST",
+        releaseReview: {
+          action: "RELEASED",
+          remarks: remarksInput.value.trim() || "",
+          releasedAt: serverTimestamp()
+        }
+      });
+
+      await postToSheets({
+        userName: tx.userName || "",
+        type: tx.type || "REQUEST",
+        category: tx.details?.categories?.[0] || tx.details?.otherCategory || "",
+        amount: tx.amount || 0,
+        status: "RELEASED REQUEST",
+        date: new Date().toLocaleString(),
+        remarks: remarksInput.value.trim() || ""
+      });
+
+      modal.hide();
+      loadApprovedRequests();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to release: " + err.message);
+    }
+  };
+
+  btnDont.onclick = async () => {
+    try {
+      const remarks = remarksInput.value.trim();
+      if (!remarks) {
+        alert("Remarks are required when choosing DON'T RELEASE.");
+        return;
+      }
+
+      await updateDoc(docRef, {
+        status: "NOT RELEASED REQUEST",
+        releaseReview: {
+          action: "NOT RELEASED",
+          remarks,
+          releasedAt: serverTimestamp()
+        }
+      });
+
+      modal.hide();
+      loadApprovedRequests();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update: " + err.message);
+    }
+  };
+}
+
+  // ---- Tabs ----
+  window.showTab = function (tabName, btn = null) {
+    const tabs = ["app-req", "real-req"];
+    tabs.forEach(tab => {
+      document.getElementById(tab).style.display = tab === tabName ? "block" : "none";
+    });
+
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+
+    const tabTitleMap = {
+      "app-req": "Approved Requests",
+      "real-req": "Released Requests"
+    };
+    document.getElementById("page-title").textContent = tabTitleMap[tabName] || "";
+    setHeaderDate();
+
+    if (tabName === "app-req") loadApprovedRequests();
+    if (tabName === "real-req") loadReleasedRequests();
+  };
+
+  window.logout = function () {
+    const modal = new bootstrap.Modal(document.getElementById("logoutModal"));
+    modal.show();
+  };
+
+  window.confirmLogout = function () {
+    sessionStorage.clear();
+    window.location.href = "index.html";
+  };
+
+  // ---- Initial load ----
+  document.addEventListener("DOMContentLoaded", () => {
+    setHeaderDate();
+    window.showTab("app-req", document.querySelector(".nav-btn.active"));
+  });
+
+  function postToSheets(payload) {
+  const url = "https://script.google.com/macros/s/AKfycbwRlqqIQJIcYXCxl7knx0QlyWiDwQZDgiDHZ45Nc8pgp3KgisVBOjvranPD_VmCA0M/exec";
+
+  // send as application/x-www-form-urlencoded (simple request = no preflight)
+  const formBody = new URLSearchParams();
+  formBody.append("data", JSON.stringify(payload));
+
+  // IMPORTANT: no custom headers; fetch will default to simple content-type
+  return fetch(url, {
+    method: "POST",
+    body: formBody
+  });
+}
+
+  // Apply saved preference immediately on load
+  (function () {
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark-mode");
+      updateDarkModeUI(true);
+    }
+  })();
+</script>
+<script>
+  (function () {
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark-mode");
+    }
+  })();
+
+  window.toggleDarkMode = function () {
+    const isDark = document.body.classList.toggle("dark-mode");
+    localStorage.setItem("darkMode", isDark);
+    updateDarkModeUI(isDark);
+  };
+
+  function updateDarkModeUI(isDark) {
+    const icon = document.getElementById("dark-mode-icon");
+    const label = document.getElementById("dark-mode-label");
+    if (icon) icon.className = isDark
+      ? "bi bi-sun-fill"
+      : "bi bi-moon-stars-fill";
+    if (label) label.textContent = isDark ? "Light Mode" : "Dark Mode";
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const isDark = localStorage.getItem("darkMode") === "true";
+    updateDarkModeUI(isDark);
+  });
+</script>
+</body>
+</html>
